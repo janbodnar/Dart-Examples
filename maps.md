@@ -1578,3 +1578,1643 @@ Advanced patterns showcase production-ready techniques including immutability,
 caching strategies, and specialized data structures. These patterns enhance  
 performance, maintain data integrity, and provide sophisticated functionality  
 for complex application requirements.  
+
+## Map Keys with Custom Hash and Equality
+
+Custom objects as map keys require proper hashCode and equality implementation  
+to ensure correct map behavior and prevent unexpected lookup failures.  
+
+```dart
+class Coordinate {
+  final int x;
+  final int y;
+  
+  Coordinate(this.x, this.y);
+  
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Coordinate && runtimeType == other.runtimeType &&
+      x == other.x && y == other.y;
+  
+  @override
+  int get hashCode => x.hashCode ^ y.hashCode;
+  
+  @override
+  String toString() => '($x, $y)';
+}
+
+class GameTile {
+  final String type;
+  final int level;
+  
+  GameTile(this.type, this.level);
+  
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GameTile && type == other.type && level == other.level;
+  
+  @override
+  int get hashCode => type.hashCode ^ level.hashCode;
+  
+  @override
+  String toString() => '$type (Level $level)';
+}
+
+void main() {
+  // Map with coordinate keys
+  var gameBoard = <Coordinate, GameTile>{
+    Coordinate(0, 0): GameTile('Castle', 3),
+    Coordinate(1, 0): GameTile('Forest', 1),
+    Coordinate(0, 1): GameTile('Mountain', 2),
+    Coordinate(2, 2): GameTile('Village', 1)
+  };
+  
+  // Test key lookup
+  var castleLocation = Coordinate(0, 0);
+  var tile = gameBoard[castleLocation];
+  print('Tile at ${castleLocation}: $tile');
+  
+  // Add new tiles
+  gameBoard[Coordinate(3, 3)] = GameTile('Dragon Lair', 5);
+  gameBoard[Coordinate(1, 1)] = GameTile('Bridge', 1);
+  
+  print('Game board:');
+  gameBoard.forEach((coord, tile) {
+    print('  ${coord}: ${tile}');
+  });
+  
+  // Find all tiles of specific type
+  var forests = <Coordinate>[];
+  gameBoard.forEach((coord, tile) {
+    if (tile.type == 'Forest') {
+      forests.add(coord);
+    }
+  });
+  
+  print('Forest locations: $forests');
+  
+  // Calculate board statistics
+  var tileTypes = <String, int>{};
+  var totalLevel = 0;
+  
+  gameBoard.forEach((coord, tile) {
+    tileTypes[tile.type] = (tileTypes[tile.type] ?? 0) + 1;
+    totalLevel += tile.level;
+  });
+  
+  print('Tile type distribution: $tileTypes');
+  print('Average tile level: ${totalLevel / gameBoard.length}');
+}
+```
+
+Proper hashCode and equality implementation ensures map keys work correctly.  
+Without these methods, identical objects might be treated as different keys,  
+causing unexpected behavior in map operations and lookups.  
+
+## Maps in Algorithms and Data Structures
+
+Maps serve as building blocks for implementing various algorithms and data  
+structures, providing efficient solutions for common computational problems.  
+
+```dart
+// Graph representation using adjacency list
+class Graph {
+  final Map<String, List<String>> _adjacencyList = {};
+  
+  void addVertex(String vertex) {
+    _adjacencyList.putIfAbsent(vertex, () => []);
+  }
+  
+  void addEdge(String from, String to) {
+    _adjacencyList.putIfAbsent(from, () => []).add(to);
+    _adjacencyList.putIfAbsent(to, () => []).add(from);
+  }
+  
+  List<String> getNeighbors(String vertex) {
+    return _adjacencyList[vertex] ?? [];
+  }
+  
+  List<String> breadthFirstSearch(String start) {
+    var visited = <String>{};
+    var queue = <String>[start];
+    var result = <String>[];
+    
+    while (queue.isNotEmpty) {
+      var current = queue.removeAt(0);
+      
+      if (!visited.contains(current)) {
+        visited.add(current);
+        result.add(current);
+        
+        for (var neighbor in getNeighbors(current)) {
+          if (!visited.contains(neighbor)) {
+            queue.add(neighbor);
+          }
+        }
+      }
+    }
+    
+    return result;
+  }
+  
+  Map<String, List<String>> get adjacencyList => 
+    Map.unmodifiable(_adjacencyList);
+}
+
+// Frequency analysis
+Map<T, int> frequencyAnalysis<T>(Iterable<T> items) {
+  var frequencies = <T, int>{};
+  
+  for (var item in items) {
+    frequencies[item] = (frequencies[item] ?? 0) + 1;
+  }
+  
+  return frequencies;
+}
+
+// Find duplicates
+List<T> findDuplicates<T>(List<T> items) {
+  var seen = <T>{};
+  var duplicates = <T>{};
+  
+  for (var item in items) {
+    if (seen.contains(item)) {
+      duplicates.add(item);
+    } else {
+      seen.add(item);
+    }
+  }
+  
+  return duplicates.toList();
+}
+
+void main() {
+  // Graph example
+  var socialNetwork = Graph();
+  
+  // Add people and friendships
+  var people = ['Alice', 'Bob', 'Carol', 'David', 'Emma'];
+  for (var person in people) {
+    socialNetwork.addVertex(person);
+  }
+  
+  socialNetwork.addEdge('Alice', 'Bob');
+  socialNetwork.addEdge('Alice', 'Carol');
+  socialNetwork.addEdge('Bob', 'David');
+  socialNetwork.addEdge('Carol', 'Emma');
+  socialNetwork.addEdge('David', 'Emma');
+  
+  print('Social network:');
+  socialNetwork.adjacencyList.forEach((person, friends) {
+    print('  $person: ${friends.join(', ')}');
+  });
+  
+  var bfsResult = socialNetwork.breadthFirstSearch('Alice');
+  print('BFS from Alice: ${bfsResult.join(' → ')}');
+  
+  // Frequency analysis
+  var text = 'the quick brown fox jumps over the lazy dog';
+  var words = text.split(' ');
+  var wordFrequencies = frequencyAnalysis(words);
+  
+  print('Word frequencies: $wordFrequencies');
+  
+  var mostCommon = wordFrequencies.entries
+      .reduce((a, b) => a.value > b.value ? a : b);
+  print('Most common word: "${mostCommon.key}" (${mostCommon.value} times)');
+  
+  // Find duplicates
+  var numbers = [1, 2, 3, 2, 4, 5, 3, 6, 1];
+  var duplicateNumbers = findDuplicates(numbers);
+  print('Original: $numbers');
+  print('Duplicates: $duplicateNumbers');
+}
+```
+
+Maps enable efficient implementation of graphs, frequency analysis, and  
+duplicate detection algorithms. The O(1) average lookup time makes maps  
+ideal for tracking visited nodes, counting occurrences, and fast membership tests.  
+
+## Map Threading and Concurrency Safety
+
+Maps require careful handling in concurrent scenarios to prevent race  
+conditions and ensure thread safety in multi-threaded applications.  
+
+```dart
+import 'dart:isolate';
+import 'dart:async';
+
+// Thread-safe counter using map
+class ThreadSafeCounter {
+  final Map<String, int> _counters = <String, int>{};
+  final Map<String, Completer<void>> _locks = <String, Completer<void>>{};
+  
+  Future<int> increment(String key) async {
+    // Simple lock mechanism
+    while (_locks.containsKey(key)) {
+      await _locks[key]!.future;
+    }
+    
+    var completer = Completer<void>();
+    _locks[key] = completer;
+    
+    try {
+      var current = _counters[key] ?? 0;
+      // Simulate some work
+      await Future.delayed(Duration(milliseconds: 1));
+      _counters[key] = current + 1;
+      return _counters[key]!;
+    } finally {
+      _locks.remove(key);
+      completer.complete();
+    }
+  }
+  
+  int get(String key) => _counters[key] ?? 0;
+  Map<String, int> get snapshot => Map.unmodifiable(_counters);
+}
+
+// Concurrent data processing
+class DataProcessor {
+  final Map<String, List<String>> _results = <String, List<String>>{};
+  
+  Future<void> processChunk(String chunkId, List<String> data) async {
+    var processed = <String>[];
+    
+    for (var item in data) {
+      // Simulate processing time
+      await Future.delayed(Duration(milliseconds: 10));
+      processed.add('processed_$item');
+    }
+    
+    _results[chunkId] = processed;
+  }
+  
+  Future<Map<String, List<String>>> processAllChunks(
+    Map<String, List<String>> chunks
+  ) async {
+    var futures = chunks.entries.map((entry) => 
+      processChunk(entry.key, entry.value)
+    );
+    
+    await Future.wait(futures);
+    return Map.from(_results);
+  }
+  
+  Map<String, List<String>> get results => Map.unmodifiable(_results);
+}
+
+void main() async {
+  // Thread-safe counter example
+  var counter = ThreadSafeCounter();
+  
+  // Simulate concurrent access
+  var futures = <Future>[];
+  for (int i = 0; i < 5; i++) {
+    futures.add(counter.increment('page_views'));
+    futures.add(counter.increment('user_actions'));
+  }
+  
+  await Future.wait(futures);
+  
+  print('Counter results:');
+  print('  Page views: ${counter.get('page_views')}');
+  print('  User actions: ${counter.get('user_actions')}');
+  print('  All counters: ${counter.snapshot}');
+  
+  // Concurrent data processing
+  var processor = DataProcessor();
+  var dataChunks = <String, List<String>>{
+    'chunk_1': ['item1', 'item2', 'item3'],
+    'chunk_2': ['item4', 'item5', 'item6'],
+    'chunk_3': ['item7', 'item8', 'item9']
+  };
+  
+  print('Processing data chunks concurrently...');
+  var startTime = DateTime.now();
+  
+  var results = await processor.processAllChunks(dataChunks);
+  
+  var endTime = DateTime.now();
+  var duration = endTime.difference(startTime).inMilliseconds;
+  
+  print('Processing completed in ${duration}ms');
+  results.forEach((chunkId, processedData) {
+    print('  $chunkId: ${processedData.length} items processed');
+  });
+  
+  // Demonstrate potential race condition (unsafe)
+  print('\\nDemonstrating concurrent map access:');
+  var unsafeMap = <String, int>{'counter': 0};
+  
+  var raceFutures = <Future>[];
+  for (int i = 0; i < 10; i++) {
+    raceFutures.add(Future(() {
+      var current = unsafeMap['counter'] ?? 0;
+      unsafeMap['counter'] = current + 1;
+    }));
+  }
+  
+  await Future.wait(raceFutures);
+  print('Final counter value (may be less than 10): ${unsafeMap['counter']}');
+}
+```
+
+Concurrent map access requires synchronization mechanisms to prevent race  
+conditions. Using locks, atomic operations, or immutable data structures  
+ensures thread safety in multi-threaded scenarios.  
+
+## Map Validation and Schema Checking
+
+Maps representing structured data benefit from validation and schema checking  
+to ensure data integrity and type safety in dynamic scenarios.  
+
+```dart
+class MapValidator {
+  static bool validateSchema(Map<String, dynamic> data, Map<String, Type> schema) {
+    // Check all required keys exist
+    for (var key in schema.keys) {
+      if (!data.containsKey(key)) {
+        print('Missing required key: $key');
+        return false;
+      }
+      
+      var expectedType = schema[key];
+      var actualValue = data[key];
+      
+      if (!_isValidType(actualValue, expectedType)) {
+        print('Type mismatch for key "$key": expected $expectedType, got ${actualValue.runtimeType}');
+        return false;
+      }
+    }
+    
+    return true;
+  }
+  
+  static bool _isValidType(dynamic value, Type expectedType) {
+    switch (expectedType) {
+      case String:
+        return value is String;
+      case int:
+        return value is int;
+      case double:
+        return value is double;
+      case bool:
+        return value is bool;
+      case List:
+        return value is List;
+      case Map:
+        return value is Map;
+      default:
+        return value.runtimeType == expectedType;
+    }
+  }
+  
+  static Map<String, List<String>> validateAndReport(
+    Map<String, dynamic> data, 
+    Map<String, Type> schema
+  ) {
+    var errors = <String, List<String>>{};
+    
+    // Check missing keys
+    for (var key in schema.keys) {
+      if (!data.containsKey(key)) {
+        errors.putIfAbsent('missing_keys', () => []).add(key);
+      }
+    }
+    
+    // Check type mismatches
+    for (var entry in data.entries) {
+      var key = entry.key;
+      var value = entry.value;
+      
+      if (schema.containsKey(key)) {
+        var expectedType = schema[key];
+        if (!_isValidType(value, expectedType)) {
+          errors.putIfAbsent('type_errors', () => [])
+              .add('$key: expected $expectedType, got ${value.runtimeType}');
+        }
+      } else {
+        errors.putIfAbsent('extra_keys', () => []).add(key);
+      }
+    }
+    
+    return errors;
+  }
+}
+
+class UserProfile {
+  static final schema = <String, Type>{
+    'id': int,
+    'username': String,
+    'email': String,
+    'age': int,
+    'isActive': bool,
+    'preferences': Map,
+    'tags': List
+  };
+  
+  final Map<String, dynamic> data;
+  
+  UserProfile.fromMap(this.data) {
+    if (!MapValidator.validateSchema(data, schema)) {
+      throw ArgumentError('Invalid user profile data');
+    }
+  }
+  
+  String get username => data['username'];
+  String get email => data['email'];
+  int get age => data['age'];
+  bool get isActive => data['isActive'];
+  List get tags => data['tags'];
+  
+  Map<String, dynamic> toMap() => Map.from(data);
+}
+
+void main() {
+  // Valid user data
+  var validUser = {
+    'id': 12345,
+    'username': 'alice_dev',
+    'email': 'alice@example.com',
+    'age': 28,
+    'isActive': true,
+    'preferences': {'theme': 'dark', 'language': 'en'},
+    'tags': ['developer', 'dart', 'flutter']
+  };
+  
+  // Test validation
+  print('Validating user profile:');
+  var isValid = MapValidator.validateSchema(validUser, UserProfile.schema);
+  print('Valid: $isValid');
+  
+  if (isValid) {
+    var profile = UserProfile.fromMap(validUser);
+    print('Created profile for: ${profile.username}');
+  }
+  
+  // Invalid user data (multiple issues)
+  var invalidUser = {
+    'id': '12345', // Wrong type: should be int
+    'username': 'bob_user',
+    'email': 42, // Wrong type: should be String
+    'age': 25,
+    'isActive': 'yes', // Wrong type: should be bool
+    'extraField': 'should not be here' // Extra field
+    // Missing 'preferences' and 'tags'
+  };
+  
+  print('\\nValidating invalid user:');
+  var errors = MapValidator.validateAndReport(invalidUser, UserProfile.schema);
+  
+  if (errors.isNotEmpty) {
+    print('Validation errors found:');
+    errors.forEach((category, issues) {
+      print('  $category: ${issues.join(', ')}');
+    });
+  }
+  
+  // Configuration validation example
+  var appConfig = {
+    'database': {
+      'host': 'localhost',
+      'port': 5432,
+      'name': 'myapp_db'
+    },
+    'cache': {
+      'ttl': 300,
+      'maxSize': 1000
+    },
+    'features': {
+      'enableLogging': true,
+      'debugMode': false
+    }
+  };
+  
+  var configSchema = <String, Type>{
+    'database': Map,
+    'cache': Map,
+    'features': Map
+  };
+  
+  print('\\nValidating app configuration:');
+  var configValid = MapValidator.validateSchema(appConfig, configSchema);
+  print('Configuration valid: $configValid');
+  
+  if (configValid) {
+    var dbConfig = appConfig['database'] as Map<String, dynamic>;
+    print('Database: ${dbConfig['host']}:${dbConfig['port']}/${dbConfig['name']}');
+    
+    var cacheConfig = appConfig['cache'] as Map<String, dynamic>;
+    print('Cache: TTL=${cacheConfig['ttl']}s, Max size=${cacheConfig['maxSize']}');
+  }
+}
+```
+
+Schema validation ensures data integrity and prevents runtime errors in  
+dynamic map-based data structures. This pattern is essential for API data  
+processing, configuration management, and user input validation.  
+
+## Map-based Configuration Management
+
+Maps provide flexible configuration management systems supporting hierarchical  
+settings, environment-specific overrides, and dynamic configuration updates.  
+
+```dart
+class ConfigurationManager {
+  final Map<String, dynamic> _defaultConfig;
+  final Map<String, dynamic> _userConfig = <String, dynamic>{};
+  final Map<String, dynamic> _environmentConfig = <String, dynamic>{};
+  final List<void Function(String, dynamic)> _changeListeners = [];
+  
+  ConfigurationManager(this._defaultConfig);
+  
+  // Get configuration value with fallback chain
+  T? get<T>(String key, {T? defaultValue}) {
+    // Check user config first, then environment, then default
+    var value = _userConfig[key] ?? 
+                _environmentConfig[key] ?? 
+                _getNestedValue(_defaultConfig, key) ?? 
+                defaultValue;
+    
+    return value is T ? value : null;
+  }
+  
+  // Set user configuration
+  void set(String key, dynamic value) {
+    var oldValue = get(key);
+    _setNestedValue(_userConfig, key, value);
+    
+    if (oldValue != value) {
+      _notifyListeners(key, value);
+    }
+  }
+  
+  // Load environment-specific configuration
+  void loadEnvironmentConfig(Map<String, dynamic> envConfig) {
+    _environmentConfig.clear();
+    _environmentConfig.addAll(envConfig);
+  }
+  
+  // Merge configuration from another map
+  void merge(Map<String, dynamic> config) {
+    config.forEach((key, value) {
+      if (value is Map<String, dynamic> && _userConfig[key] is Map) {
+        var existing = _userConfig[key] as Map<String, dynamic>;
+        existing.addAll(value);
+      } else {
+        _userConfig[key] = value;
+      }
+    });
+  }
+  
+  // Get all configuration as flat map
+  Map<String, dynamic> getAllFlat() {
+    var result = <String, dynamic>{};
+    
+    void flattenMap(Map<String, dynamic> map, String prefix) {
+      map.forEach((key, value) {
+        var fullKey = prefix.isEmpty ? key : '$prefix.$key';
+        
+        if (value is Map<String, dynamic>) {
+          flattenMap(value, fullKey);
+        } else {
+          result[fullKey] = get(fullKey);
+        }
+      });
+    }
+    
+    // Start with default config structure
+    flattenMap(_defaultConfig, '');
+    
+    // Add any additional user config keys
+    flattenMap(_userConfig, '');
+    
+    return result;
+  }
+  
+  // Configuration change listener
+  void addChangeListener(void Function(String key, dynamic value) listener) {
+    _changeListeners.add(listener);
+  }
+  
+  void _notifyListeners(String key, dynamic value) {
+    for (var listener in _changeListeners) {
+      listener(key, value);
+    }
+  }
+  
+  dynamic _getNestedValue(Map<String, dynamic> map, String key) {
+    var parts = key.split('.');
+    dynamic current = map;
+    
+    for (var part in parts) {
+      if (current is Map<String, dynamic> && current.containsKey(part)) {
+        current = current[part];
+      } else {
+        return null;
+      }
+    }
+    
+    return current;
+  }
+  
+  void _setNestedValue(Map<String, dynamic> map, String key, dynamic value) {
+    var parts = key.split('.');
+    Map<String, dynamic> current = map;
+    
+    for (int i = 0; i < parts.length - 1; i++) {
+      var part = parts[i];
+      current.putIfAbsent(part, () => <String, dynamic>{});
+      current = current[part] as Map<String, dynamic>;
+    }
+    
+    current[parts.last] = value;
+  }
+}
+
+void main() {
+  // Default application configuration
+  var defaultConfig = <String, dynamic>{
+    'app': {
+      'name': 'MyApp',
+      'version': '1.0.0',
+      'debug': false
+    },
+    'database': {
+      'host': 'localhost',
+      'port': 5432,
+      'name': 'myapp',
+      'poolSize': 10
+    },
+    'cache': {
+      'enabled': true,
+      'ttl': 3600,
+      'maxSize': 1000
+    },
+    'logging': {
+      'level': 'info',
+      'file': '/var/log/myapp.log'
+    }
+  };
+  
+  var config = ConfigurationManager(defaultConfig);
+  
+  // Add change listener
+  config.addChangeListener((key, value) {
+    print('Configuration changed: $key = $value');
+  });
+  
+  // Test basic configuration access
+  print('App configuration:');
+  print('  Name: ${config.get<String>('app.name')}');
+  print('  Version: ${config.get<String>('app.version')}');
+  print('  Debug: ${config.get<bool>('app.debug')}');
+  print('  DB Host: ${config.get<String>('database.host')}');
+  print('  DB Port: ${config.get<int>('database.port')}');
+  
+  // Load environment-specific configuration
+  var productionConfig = <String, dynamic>{
+    'app': {'debug': false},
+    'database': {
+      'host': 'prod-db.example.com',
+      'port': 5432,
+      'ssl': true
+    },
+    'cache': {'ttl': 7200},
+    'logging': {'level': 'warn'}
+  };
+  
+  config.loadEnvironmentConfig(productionConfig);
+  
+  print('\\nAfter loading production config:');
+  print('  Debug: ${config.get<bool>('app.debug')}');
+  print('  DB Host: ${config.get<String>('database.host')}');
+  print('  Cache TTL: ${config.get<int>('cache.ttl')}');
+  print('  Log Level: ${config.get<String>('logging.level')}');
+  
+  // User overrides
+  config.set('app.debug', true);
+  config.set('database.poolSize', 20);
+  config.set('newFeature.enabled', true);
+  
+  print('\\nAfter user overrides:');
+  print('  Debug: ${config.get<bool>('app.debug')}');
+  print('  Pool Size: ${config.get<int>('database.poolSize')}');
+  print('  New Feature: ${config.get<bool>('newFeature.enabled')}');
+  
+  // Get flattened configuration
+  print('\\nFlat configuration:');
+  var flatConfig = config.getAllFlat();
+  flatConfig.forEach((key, value) {
+    print('  $key: $value');
+  });
+  
+  // Bulk merge configuration
+  var additionalConfig = <String, dynamic>{
+    'monitoring': {
+      'enabled': true,
+      'interval': 60
+    },
+    'security': {
+      'jwt': {
+        'secret': 'my-secret-key',
+        'expiry': 86400
+      }
+    }
+  };
+  
+  config.merge(additionalConfig);
+  print('\\nAdded monitoring and security config:');
+  print('  Monitoring enabled: ${config.get<bool>('monitoring.enabled')}');
+  print('  JWT expiry: ${config.get<int>('security.jwt.expiry')}');
+}
+```
+
+Configuration management with maps enables flexible, hierarchical settings  
+with fallback chains and environment-specific overrides. This pattern  
+supports complex application configuration requirements and runtime updates.  
+
+## Map Data Transformation Pipelines
+
+Maps enable sophisticated data transformation pipelines for ETL operations,  
+data cleaning, and batch processing workflows in data-intensive applications.  
+
+```dart
+// Data transformation pipeline
+class DataPipeline {
+  final List<Map<String, dynamic> Function(Map<String, dynamic>)> _transformations = [];
+  final List<bool Function(Map<String, dynamic>)> _filters = [];
+  final Map<String, int> _statistics = <String, int>{};
+  
+  // Add transformation step
+  DataPipeline transform(Map<String, dynamic> Function(Map<String, dynamic>) transformer) {
+    _transformations.add(transformer);
+    return this;
+  }
+  
+  // Add filter step
+  DataPipeline filter(bool Function(Map<String, dynamic>) predicate) {
+    _filters.add(predicate);
+    return this;
+  }
+  
+  // Process data through pipeline
+  List<Map<String, dynamic>> process(List<Map<String, dynamic>> input) {
+    _statistics.clear();
+    _statistics['input_count'] = input.length;
+    
+    var data = List<Map<String, dynamic>>.from(input);
+    
+    // Apply transformations
+    for (int i = 0; i < _transformations.length; i++) {
+      var transformer = _transformations[i];
+      data = data.map(transformer).toList();
+      _statistics['after_transform_${i + 1}'] = data.length;
+    }
+    
+    // Apply filters
+    for (int i = 0; i < _filters.length; i++) {
+      var predicate = _filters[i];
+      data = data.where(predicate).toList();
+      _statistics['after_filter_${i + 1}'] = data.length;
+    }
+    
+    _statistics['output_count'] = data.length;
+    return data;
+  }
+  
+  Map<String, int> get statistics => Map.unmodifiable(_statistics);
+}
+
+// Data cleaning utilities
+class DataCleaner {
+  // Normalize string fields
+  static Map<String, dynamic> normalizeStrings(Map<String, dynamic> record) {
+    var cleaned = Map<String, dynamic>.from(record);
+    
+    cleaned.forEach((key, value) {
+      if (value is String) {
+        cleaned[key] = value.trim().toLowerCase();
+      }
+    });
+    
+    return cleaned;
+  }
+  
+  // Remove null and empty values
+  static Map<String, dynamic> removeEmpty(Map<String, dynamic> record) {
+    var cleaned = <String, dynamic>{};
+    
+    record.forEach((key, value) {
+      if (value != null && value != '' && value != []) {
+        cleaned[key] = value;
+      }
+    });
+    
+    return cleaned;
+  }
+  
+  // Convert string numbers to actual numbers
+  static Map<String, dynamic> parseNumbers(Map<String, dynamic> record) {
+    var converted = Map<String, dynamic>.from(record);
+    
+    converted.forEach((key, value) {
+      if (value is String) {
+        var intValue = int.tryParse(value);
+        if (intValue != null) {
+          converted[key] = intValue;
+          return;
+        }
+        
+        var doubleValue = double.tryParse(value);
+        if (doubleValue != null) {
+          converted[key] = doubleValue;
+        }
+      }
+    });
+    
+    return converted;
+  }
+  
+  // Standardize date formats
+  static Map<String, dynamic> standardizeDates(Map<String, dynamic> record) {
+    var standardized = Map<String, dynamic>.from(record);
+    
+    standardized.forEach((key, value) {
+      if (value is String && _isDateLike(value)) {
+        try {
+          var date = DateTime.parse(value);
+          standardized[key] = date.toIso8601String();
+        } catch (e) {
+          // Keep original if parsing fails
+        }
+      }
+    });
+    
+    return standardized;
+  }
+  
+  static bool _isDateLike(String value) {
+    return value.contains('-') || value.contains('/') || value.contains('T');
+  }
+}
+
+// Aggregation utilities
+class DataAggregator {
+  static Map<String, dynamic> groupByAndAggregate(
+    List<Map<String, dynamic>> data,
+    String groupByField,
+    Map<String, String Function(List<dynamic>)> aggregations
+  ) {
+    // Group data
+    var groups = <dynamic, List<Map<String, dynamic>>>{};
+    
+    for (var record in data) {
+      var groupKey = record[groupByField];
+      groups.putIfAbsent(groupKey, () => []).add(record);
+    }
+    
+    // Aggregate each group
+    var results = <String, dynamic>{};
+    
+    groups.forEach((groupKey, groupData) {
+      var groupResults = <String, dynamic>{'group': groupKey, 'count': groupData.length};
+      
+      aggregations.forEach((field, aggregator) {
+        var values = groupData.map((record) => record[field]).where((v) => v != null).toList();
+        groupResults['${field}_${aggregator.toString().split(' ')[1]}'] = aggregator(values);
+      });
+      
+      results[groupKey.toString()] = groupResults;
+    });
+    
+    return results;
+  }
+  
+  static num sum(List<dynamic> values) {
+    return values.where((v) => v is num).fold(0, (a, b) => a + b);
+  }
+  
+  static double average(List<dynamic> values) {
+    var numericValues = values.where((v) => v is num).map((v) => v as num).toList();
+    return numericValues.isEmpty ? 0 : numericValues.reduce((a, b) => a + b) / numericValues.length;
+  }
+  
+  static num max(List<dynamic> values) {
+    var numericValues = values.where((v) => v is num).map((v) => v as num);
+    return numericValues.isEmpty ? 0 : numericValues.reduce((a, b) => a > b ? a : b);
+  }
+  
+  static num min(List<dynamic> values) {
+    var numericValues = values.where((v) => v is num).map((v) => v as num);
+    return numericValues.isEmpty ? 0 : numericValues.reduce((a, b) => a < b ? a : b);
+  }
+}
+
+void main() {
+  // Sample raw data (simulating CSV or API input)
+  var rawData = [
+    {'name': '  Alice Smith  ', 'age': '28', 'salary': '75000', 'department': 'Engineering', 'join_date': '2022-01-15'},
+    {'name': 'BOB JONES', 'age': '32', 'salary': '68000', 'department': 'marketing', 'join_date': '2021-03-22'},
+    {'name': '', 'age': '29', 'salary': '', 'department': 'Engineering', 'join_date': '2023-06-10'},
+    {'name': 'carol WHITE', 'age': '35', 'salary': '82000', 'department': 'Engineering', 'join_date': '2020-09-05'},
+    {'name': 'David Brown', 'age': null, 'salary': '71000', 'department': 'Marketing', 'join_date': '2022-11-12'},
+    {'name': 'Emma Davis', 'age': '26', 'salary': '79000', 'department': 'Sales', 'join_date': '2023-02-28'},
+  ];
+  
+  print('Raw data (${rawData.length} records):');
+  rawData.take(2).forEach((record) => print('  $record'));
+  
+  // Create data processing pipeline
+  var pipeline = DataPipeline()
+    .transform(DataCleaner.normalizeStrings)
+    .transform(DataCleaner.parseNumbers)
+    .transform(DataCleaner.standardizeDates)
+    .transform(DataCleaner.removeEmpty)
+    .filter((record) => record.containsKey('name') && record['name'] != '')
+    .filter((record) => record.containsKey('salary') && record['salary'] is num);
+  
+  // Process data
+  var cleanData = pipeline.process(rawData);
+  
+  print('\\nPipeline statistics: ${pipeline.statistics}');
+  
+  print('\\nCleaned data (${cleanData.length} records):');
+  cleanData.forEach((record) => print('  $record'));
+  
+  // Aggregate data by department
+  var departmentStats = DataAggregator.groupByAndAggregate(
+    cleanData,
+    'department',
+    {
+      'salary': DataAggregator.average,
+      'age': DataAggregator.average
+    }
+  );
+  
+  print('\\nDepartment statistics:');
+  departmentStats.forEach((department, stats) {
+    print('  $department: $stats');
+  });
+  
+  // Calculate overall statistics
+  var allSalaries = cleanData.map((r) => r['salary']).where((s) => s is num).map((s) => s as num).toList();
+  var allAges = cleanData.map((r) => r['age']).where((a) => a is num).map((a) => a as num).toList();
+  
+  print('\\nOverall statistics:');
+  print('  Salary - Avg: \$${DataAggregator.average(allSalaries).toStringAsFixed(0)}, Min: \$${DataAggregator.min(allSalaries)}, Max: \$${DataAggregator.max(allSalaries)}');
+  print('  Age - Avg: ${DataAggregator.average(allAges).toStringAsFixed(1)}, Min: ${DataAggregator.min(allAges)}, Max: ${DataAggregator.max(allAges)}');
+  
+  // Data validation summary
+  var validationSummary = <String, int>{
+    'total_input': rawData.length,
+    'valid_output': cleanData.length,
+    'records_removed': rawData.length - cleanData.length,
+    'departments_found': departmentStats.length
+  };
+  
+  print('\\nValidation summary: $validationSummary');
+}
+```
+
+Data transformation pipelines with maps enable robust ETL operations,  
+data cleaning, and aggregation workflows. This pattern supports complex  
+data processing requirements with reusable, composable transformation steps.  
+
+## Map Event Sourcing and Audit Trails
+
+Maps provide foundation for event sourcing patterns, maintaining audit trails  
+and enabling temporal data analysis for compliance and debugging purposes.  
+
+```dart
+// Event sourcing system
+abstract class Event {
+  final String id;
+  final DateTime timestamp;
+  final String entityId;
+  final String eventType;
+  final Map<String, dynamic> data;
+  
+  Event(this.id, this.entityId, this.eventType, this.data) 
+    : timestamp = DateTime.now();
+  
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'timestamp': timestamp.toIso8601String(),
+    'entityId': entityId,
+    'eventType': eventType,
+    'data': data
+  };
+  
+  @override
+  String toString() => 'Event($id, $eventType, $entityId, $timestamp)';
+}
+
+class UserEvent extends Event {
+  UserEvent(String id, String userId, String eventType, Map<String, dynamic> data)
+    : super(id, userId, eventType, data);
+}
+
+class EventStore {
+  final List<Event> _events = [];
+  final Map<String, List<Event>> _entityEvents = {};
+  final Map<String, List<Event>> _eventTypeIndex = {};
+  
+  void append(Event event) {
+    _events.add(event);
+    
+    // Index by entity
+    _entityEvents.putIfAbsent(event.entityId, () => []).add(event);
+    
+    // Index by event type
+    _eventTypeIndex.putIfAbsent(event.eventType, () => []).add(event);
+  }
+  
+  List<Event> getEventsForEntity(String entityId) {
+    return List.unmodifiable(_entityEvents[entityId] ?? []);
+  }
+  
+  List<Event> getEventsByType(String eventType) {
+    return List.unmodifiable(_eventTypeIndex[eventType] ?? []);
+  }
+  
+  List<Event> getEventsInRange(DateTime start, DateTime end) {
+    return _events.where((event) => 
+      event.timestamp.isAfter(start) && event.timestamp.isBefore(end)
+    ).toList();
+  }
+  
+  Map<String, dynamic> reconstructEntityState(String entityId) {
+    var events = getEventsForEntity(entityId);
+    var state = <String, dynamic>{};
+    
+    for (var event in events) {
+      switch (event.eventType) {
+        case 'UserCreated':
+          state.addAll(event.data);
+          state['created'] = event.timestamp.toIso8601String();
+          break;
+        
+        case 'UserUpdated':
+          state.addAll(event.data);
+          state['lastModified'] = event.timestamp.toIso8601String();
+          break;
+        
+        case 'UserDeleted':
+          state['deleted'] = event.timestamp.toIso8601String();
+          state['active'] = false;
+          break;
+      }
+    }
+    
+    return state;
+  }
+  
+  List<Event> get allEvents => List.unmodifiable(_events);
+  int get eventCount => _events.length;
+}
+
+// Audit trail system
+class AuditLogger {
+  final Map<String, List<Map<String, dynamic>>> _auditTrails = {};
+  
+  void log(String entityType, String entityId, String action, 
+          Map<String, dynamic> changes, {String? userId}) {
+    var auditEntry = {
+      'timestamp': DateTime.now().toIso8601String(),
+      'entityType': entityType,
+      'entityId': entityId,
+      'action': action,
+      'changes': changes,
+      'userId': userId,
+      'sessionId': _generateSessionId()
+    };
+    
+    var key = '${entityType}_$entityId';
+    _auditTrails.putIfAbsent(key, () => []).add(auditEntry);
+  }
+  
+  List<Map<String, dynamic>> getAuditTrail(String entityType, String entityId) {
+    var key = '${entityType}_$entityId';
+    return List.unmodifiable(_auditTrails[key] ?? []);
+  }
+  
+  List<Map<String, dynamic>> getAuditsByUser(String userId) {
+    var userAudits = <Map<String, dynamic>>[];
+    
+    _auditTrails.values.forEach((trail) {
+      userAudits.addAll(trail.where((entry) => entry['userId'] == userId));
+    });
+    
+    userAudits.sort((a, b) => 
+      DateTime.parse(a['timestamp']).compareTo(DateTime.parse(b['timestamp']))
+    );
+    
+    return userAudits;
+  }
+  
+  Map<String, int> getActionSummary() {
+    var summary = <String, int>{};
+    
+    _auditTrails.values.forEach((trail) {
+      trail.forEach((entry) {
+        var action = entry['action'] as String;
+        summary[action] = (summary[action] ?? 0) + 1;
+      });
+    });
+    
+    return summary;
+  }
+  
+  String _generateSessionId() => 
+    DateTime.now().millisecondsSinceEpoch.toRadixString(36);
+}
+
+// User aggregate using event sourcing
+class User {
+  final String id;
+  final EventStore _eventStore;
+  
+  User(this.id, this._eventStore);
+  
+  void create(String name, String email, int age) {
+    var event = UserEvent(
+      _generateId(),
+      id,
+      'UserCreated',
+      {'name': name, 'email': email, 'age': age}
+    );
+    _eventStore.append(event);
+  }
+  
+  void updateEmail(String newEmail) {
+    var event = UserEvent(
+      _generateId(),
+      id,
+      'UserUpdated',
+      {'email': newEmail}
+    );
+    _eventStore.append(event);
+  }
+  
+  void updateAge(int newAge) {
+    var event = UserEvent(
+      _generateId(),
+      id,
+      'UserUpdated',
+      {'age': newAge}
+    );
+    _eventStore.append(event);
+  }
+  
+  void delete() {
+    var event = UserEvent(
+      _generateId(),
+      id,
+      'UserDeleted',
+      {}
+    );
+    _eventStore.append(event);
+  }
+  
+  Map<String, dynamic> getCurrentState() {
+    return _eventStore.reconstructEntityState(id);
+  }
+  
+  List<Event> getHistory() {
+    return _eventStore.getEventsForEntity(id);
+  }
+  
+  String _generateId() => 
+    '${DateTime.now().millisecondsSinceEpoch}_${(1000 + (DateTime.now().microsecond % 9000))}';
+}
+
+void main() {
+  // Initialize event store and audit logger
+  var eventStore = EventStore();
+  var auditLogger = AuditLogger();
+  
+  // Create and manipulate users
+  var user1 = User('user_001', eventStore);
+  var user2 = User('user_002', eventStore);
+  
+  // Simulate user operations with audit logging
+  print('Creating users...');
+  
+  user1.create('Alice Johnson', 'alice@example.com', 28);
+  auditLogger.log('User', 'user_001', 'CREATE', 
+    {'name': 'Alice Johnson', 'email': 'alice@example.com', 'age': 28}, 
+    userId: 'admin_001');
+  
+  user2.create('Bob Wilson', 'bob@example.com', 32);
+  auditLogger.log('User', 'user_002', 'CREATE',
+    {'name': 'Bob Wilson', 'email': 'bob@example.com', 'age': 32},
+    userId: 'admin_001');
+  
+  // Simulate some delays
+  await Future.delayed(Duration(milliseconds: 10));
+  
+  print('Updating users...');
+  
+  user1.updateEmail('alice.johnson@newcompany.com');
+  auditLogger.log('User', 'user_001', 'UPDATE',
+    {'email': {'old': 'alice@example.com', 'new': 'alice.johnson@newcompany.com'}},
+    userId: 'user_001');
+  
+  user1.updateAge(29);
+  auditLogger.log('User', 'user_001', 'UPDATE',
+    {'age': {'old': 28, 'new': 29}},
+    userId: 'user_001');
+  
+  user2.delete();
+  auditLogger.log('User', 'user_002', 'DELETE',
+    {'reason': 'User requested account deletion'},
+    userId: 'admin_001');
+  
+  // Show current states
+  print('\\nCurrent user states:');
+  print('User 1: ${user1.getCurrentState()}');
+  print('User 2: ${user2.getCurrentState()}');
+  
+  // Show event history
+  print('\\nUser 1 event history:');
+  user1.getHistory().forEach((event) {
+    print('  ${event.timestamp}: ${event.eventType} - ${event.data}');
+  });
+  
+  print('\\nUser 2 event history:');
+  user2.getHistory().forEach((event) {
+    print('  ${event.timestamp}: ${event.eventType} - ${event.data}');
+  });
+  
+  // Audit trail analysis
+  print('\\nAudit trail for user_001:');
+  var user1Audit = auditLogger.getAuditTrail('User', 'user_001');
+  user1Audit.forEach((entry) {
+    print('  ${entry['timestamp']}: ${entry['action']} by ${entry['userId']}');
+    print('    Changes: ${entry['changes']}');
+  });
+  
+  print('\\nActions by admin_001:');
+  var adminActions = auditLogger.getAuditsByUser('admin_001');
+  adminActions.forEach((entry) {
+    print('  ${entry['timestamp']}: ${entry['action']} on ${entry['entityId']}');
+  });
+  
+  // Summary statistics
+  print('\\nEvent store statistics:');
+  print('  Total events: ${eventStore.eventCount}');
+  print('  Create events: ${eventStore.getEventsByType('UserCreated').length}');
+  print('  Update events: ${eventStore.getEventsByType('UserUpdated').length}');
+  print('  Delete events: ${eventStore.getEventsByType('UserDeleted').length}');
+  
+  print('\\nAudit summary:');
+  var actionSummary = auditLogger.getActionSummary();
+  actionSummary.forEach((action, count) {
+    print('  $action: $count times');
+  });
+}
+```
+
+Event sourcing with maps enables complete audit trails, temporal queries,  
+and state reconstruction from historical events. This pattern supports  
+compliance requirements and provides comprehensive system observability.  
+
+## Map-based Reactive Streams and Observables
+
+Maps can implement reactive programming patterns, enabling data streams,  
+observables, and reactive state management for dynamic user interfaces.  
+
+```dart
+// Simple reactive stream implementation
+class ReactiveMap<K, V> {
+  final Map<K, V> _data = <K, V>{};
+  final Map<K, List<void Function(V?)>> _keyListeners = <K, List<void Function(V?)>>{};
+  final List<void Function(Map<K, V>)> _mapListeners = <void Function(Map<K, V>)>[];
+  
+  // Get value
+  V? operator [](K key) => _data[key];
+  
+  // Set value with notifications
+  void operator []=(K key, V value) {
+    var oldValue = _data[key];
+    _data[key] = value;
+    
+    // Notify key-specific listeners
+    _keyListeners[key]?.forEach((listener) => listener(value));
+    
+    // Notify map listeners
+    _mapListeners.forEach((listener) => listener(Map.unmodifiable(_data)));
+  }
+  
+  // Remove with notifications
+  V? remove(K key) {
+    var removedValue = _data.remove(key);
+    if (removedValue != null) {
+      _keyListeners[key]?.forEach((listener) => listener(null));
+      _mapListeners.forEach((listener) => listener(Map.unmodifiable(_data)));
+    }
+    return removedValue;
+  }
+  
+  // Subscribe to specific key changes
+  void subscribeToKey(K key, void Function(V?) listener) {
+    _keyListeners.putIfAbsent(key, () => []).add(listener);
+  }
+  
+  // Subscribe to map changes
+  void subscribeToMap(void Function(Map<K, V>) listener) {
+    _mapListeners.add(listener);
+  }
+  
+  // Unsubscribe
+  void unsubscribeFromKey(K key, void Function(V?) listener) {
+    _keyListeners[key]?.remove(listener);
+  }
+  
+  void unsubscribeFromMap(void Function(Map<K, V>) listener) {
+    _mapListeners.remove(listener);
+  }
+  
+  // Transform stream
+  ReactiveMap<K, R> map<R>(R Function(V) transform) {
+    var result = ReactiveMap<K, R>();
+    
+    // Copy current data with transformation
+    _data.forEach((key, value) {
+      result[key] = transform(value);
+    });
+    
+    // Subscribe to changes
+    subscribeToMap((updatedMap) {
+      updatedMap.forEach((key, value) {
+        result[key] = transform(value);
+      });
+    });
+    
+    return result;
+  }
+  
+  // Filter stream
+  ReactiveMap<K, V> where(bool Function(K, V) predicate) {
+    var result = ReactiveMap<K, V>();
+    
+    // Copy current filtered data
+    _data.forEach((key, value) {
+      if (predicate(key, value)) {
+        result[key] = value;
+      }
+    });
+    
+    // Subscribe to changes
+    subscribeToMap((updatedMap) {
+      result._data.clear();
+      updatedMap.forEach((key, value) {
+        if (predicate(key, value)) {
+          result[key] = value;
+        }
+      });
+      result._mapListeners.forEach((listener) => 
+        listener(Map.unmodifiable(result._data)));
+    });
+    
+    return result;
+  }
+  
+  Map<K, V> get snapshot => Map.unmodifiable(_data);
+  int get length => _data.length;
+  bool get isEmpty => _data.isEmpty;
+  Iterable<K> get keys => _data.keys;
+  Iterable<V> get values => _data.values;
+}
+
+// State management with reactive maps
+class AppState {
+  final ReactiveMap<String, dynamic> _state = ReactiveMap<String, dynamic>();
+  final Map<String, List<void Function()>> _computedSubscriptions = {};
+  
+  // Get state value
+  T? get<T>(String key) => _state[key] is T ? _state[key] as T : null;
+  
+  // Set state value
+  void set<T>(String key, T value) {
+    _state[key] = value;
+  }
+  
+  // Subscribe to state changes
+  void subscribe(String key, void Function(dynamic) callback) {
+    _state.subscribeToKey(key, callback);
+  }
+  
+  // Subscribe to entire state changes
+  void subscribeToState(void Function(Map<String, dynamic>) callback) {
+    _state.subscribeToMap(callback);
+  }
+  
+  // Computed properties
+  void addComputed(String key, dynamic Function() computation) {
+    // Initial computation
+    _state[key] = computation();
+    
+    // Recompute when dependencies change
+    var recompute = () {
+      _state[key] = computation();
+    };
+    
+    _state.subscribeToMap((_) => recompute());
+    _computedSubscriptions.putIfAbsent(key, () => []).add(recompute);
+  }
+  
+  // Batch updates
+  void batch(Map<String, dynamic> updates) {
+    updates.forEach((key, value) {
+      _state[key] = value;
+    });
+  }
+  
+  Map<String, dynamic> get snapshot => _state.snapshot;
+}
+
+// Shopping cart example with reactive updates
+class ReactiveShoppingCart {
+  final ReactiveMap<String, Map<String, dynamic>> _items = ReactiveMap();
+  final ReactiveMap<String, double> _prices = ReactiveMap();
+  final ReactiveMap<String, dynamic> _totals = ReactiveMap();
+  
+  ReactiveShoppingCart() {
+    // Reactive total calculation
+    _items.subscribeToMap(_updateTotals);
+    _prices.subscribeToMap(_updateTotals);
+    
+    // Initialize totals
+    _updateTotals(_items.snapshot);
+  }
+  
+  void addItem(String productId, String name, int quantity, double price) {
+    _items[productId] = {'name': name, 'quantity': quantity};
+    _prices[productId] = price;
+  }
+  
+  void updateQuantity(String productId, int newQuantity) {
+    var item = _items[productId];
+    if (item != null) {
+      _items[productId] = {
+        'name': item['name'],
+        'quantity': newQuantity
+      };
+    }
+  }
+  
+  void removeItem(String productId) {
+    _items.remove(productId);
+    _prices.remove(productId);
+  }
+  
+  void subscribeToTotals(void Function(Map<String, dynamic>) callback) {
+    _totals.subscribeToMap(callback);
+  }
+  
+  void subscribeToItems(void Function(Map<String, Map<String, dynamic>>) callback) {
+    _items.subscribeToMap(callback);
+  }
+  
+  void _updateTotals(Map<String, Map<String, dynamic>> items) {
+    var itemCount = 0;
+    var totalValue = 0.0;
+    var categories = <String, int>{};
+    
+    items.forEach((productId, item) {
+      var quantity = item['quantity'] as int;
+      var price = _prices[productId] ?? 0.0;
+      
+      itemCount += quantity;
+      totalValue += quantity * price;
+      
+      // Simulate category grouping
+      var category = item['name'].toString().split(' ').first;
+      categories[category] = (categories[category] ?? 0) + quantity;
+    });
+    
+    _totals['itemCount'] = itemCount;
+    _totals['totalValue'] = totalValue;
+    _totals['categories'] = categories;
+    _totals['lastUpdated'] = DateTime.now().toIso8601String();
+  }
+  
+  Map<String, dynamic> get totals => _totals.snapshot;
+  Map<String, Map<String, dynamic>> get items => _items.snapshot;
+}
+
+void main() async {
+  // Reactive map example
+  print('=== Reactive Map Demo ===');
+  
+  var reactiveData = ReactiveMap<String, int>();
+  
+  // Subscribe to specific key
+  reactiveData.subscribeToKey('counter', (value) {
+    print('Counter changed: $value');
+  });
+  
+  // Subscribe to entire map
+  reactiveData.subscribeToMap((map) {
+    print('Map updated: $map');
+  });
+  
+  // Update values (will trigger notifications)
+  reactiveData['counter'] = 1;
+  reactiveData['counter'] = 2;
+  reactiveData['other'] = 100;
+  
+  await Future.delayed(Duration(milliseconds: 100));
+  
+  // Transform stream
+  var doubled = reactiveData.map<int>((value) => value * 2);
+  doubled.subscribeToMap((map) {
+    print('Doubled values: $map');
+  });
+  
+  reactiveData['counter'] = 3;
+  
+  await Future.delayed(Duration(milliseconds: 100));
+  
+  // App state example
+  print('\\n=== App State Demo ===');
+  
+  var appState = AppState();
+  
+  // Subscribe to user data
+  appState.subscribe('user', (user) {
+    print('User changed: $user');
+  });
+  
+  // Subscribe to theme
+  appState.subscribe('theme', (theme) {
+    print('Theme changed: $theme');
+  });
+  
+  // Add computed property
+  appState.addComputed('greeting', () {
+    var user = appState.get<Map<String, dynamic>>('user');
+    var theme = appState.get<String>('theme') ?? 'light';
+    
+    if (user != null) {
+      return 'Hello ${user['name']} (${theme} theme)';
+    }
+    return 'Hello Guest (${theme} theme)';
+  });
+  
+  appState.subscribe('greeting', (greeting) {
+    print('Greeting: $greeting');
+  });
+  
+  // Update state
+  appState.set('user', {'name': 'Alice', 'role': 'admin'});
+  appState.set('theme', 'dark');
+  
+  await Future.delayed(Duration(milliseconds: 100));
+  
+  // Shopping cart example
+  print('\\n=== Reactive Shopping Cart Demo ===');
+  
+  var cart = ReactiveShoppingCart();
+  
+  // Subscribe to cart changes
+  cart.subscribeToTotals((totals) {
+    print('Cart totals: ${totals['itemCount']} items, \$${totals['totalValue'].toStringAsFixed(2)}');
+    print('Categories: ${totals['categories']}');
+  });
+  
+  cart.subscribeToItems((items) {
+    print('Cart items: ${items.length} products');
+  });
+  
+  // Add items
+  cart.addItem('laptop1', 'Gaming Laptop', 1, 1299.99);
+  cart.addItem('mouse1', 'Wireless Mouse', 2, 49.99);
+  cart.addItem('keyboard1', 'Mechanical Keyboard', 1, 159.99);
+  
+  await Future.delayed(Duration(milliseconds: 100));
+  
+  // Update quantities
+  cart.updateQuantity('mouse1', 3);
+  
+  await Future.delayed(Duration(milliseconds: 100));
+  
+  // Remove item
+  cart.removeItem('keyboard1');
+  
+  await Future.delayed(Duration(milliseconds: 100));
+  
+  print('\\nFinal cart state:');
+  print('Items: ${cart.items}');
+  print('Totals: ${cart.totals}');
+}
+```
+
+Reactive maps enable real-time data synchronization, computed properties,  
+and automatic UI updates. This pattern supports reactive programming  
+paradigms and provides foundation for modern reactive applications.
