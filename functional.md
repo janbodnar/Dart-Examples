@@ -2509,13 +2509,12 @@ Creating domain-specific languages using functional programming techniques
 to build expressive, type-safe APIs for specific problem domains.  
 
 ```dart
-void main() {
-  // Query DSL for data filtering and transformation
-  
-  class Query<T> {
+// Query DSL for data filtering and transformation
+
+class Query<T> {
     final List<T> data;
     final List<bool Function(T)> filters;
-    final List<T Function(T)> transformations;
+    final List<Function> transformations;
     final List<Comparable Function(T)> sortKeys;
     
     Query._(this.data, this.filters, this.transformations, this.sortKeys);
@@ -2526,16 +2525,19 @@ void main() {
       return Query._(data, [...filters, predicate], transformations, sortKeys);
     }
     
-    Query<U> select<U>(U Function(T) selector) {
-      return Query<U>._(
-        [],
-        [],
-        [],
-        [],
-      )._withBase(data, filters, [...transformations, selector], []);
+  Query<U> select<U>(U Function(T) selector) {
+    var result = data.toList();
+    
+    // Apply filters first
+    for (var filter in filters) {
+      result = result.where(filter).toList();
     }
     
-    Query<T> orderBy(Comparable Function(T) keySelector) {
+    // Apply transformations
+    var transformed = result.map(selector).toList();
+    
+    return Query<U>._(transformed, [], [], []);
+  }    Query<T> orderBy(Comparable Function(T) keySelector) {
       return Query._(data, filters, transformations, [...sortKeys, keySelector]);
     }
     
@@ -2543,71 +2545,33 @@ void main() {
       return Query._(data.take(count).toList(), filters, transformations, sortKeys);
     }
     
-    Query<U> _withBase<U>(
-      List data,
-      List<bool Function(dynamic)> filters,
-      List<Function> transformations,
-      List<Comparable Function(dynamic)> sortKeys,
-    ) {
-      return Query<U>._(
-        data as List<U>,
-        filters as List<bool Function(U)>,
-        transformations as List<U Function(U)>,
-        sortKeys as List<Comparable Function(U)>,
-      );
+    List<T> execute() {
+    var result = data.toList();
+    
+    // Apply filters
+    for (var filter in filters) {
+      result = result.where(filter).toList();
     }
     
-    List<T> execute() {
-      var result = List<T>.from(data);
-      
-      // Apply filters
-      for (var filter in filters) {
-        result = result.where(filter).toList();
-      }
-      
-      // Apply transformations
-      dynamic current = result;
-      for (var transform in transformations) {
-        current = (current as List).map(transform).toList();
-      }
-      result = current as List<T>;
-      
-      // Apply sorting
-      if (sortKeys.isNotEmpty) {
-        result.sort((a, b) {
-          for (var keySelector in sortKeys) {
-            var comparison = Comparable.compare(
-              keySelector(a),
-              keySelector(b),
-            );
-            if (comparison != 0) return comparison;
-          }
-          return 0;
-        });
-      }
-      
-      return result;
+    // Apply sorting
+    if (sortKeys.isNotEmpty) {
+      result.sort((a, b) {
+        for (var keySelector in sortKeys) {
+          var comparison = Comparable.compare(
+            keySelector(a),
+            keySelector(b),
+          );
+          if (comparison != 0) return comparison;
+        }
+        return 0;
+      });
     }
+    
+    return result;
   }
-  
-  // Sample data
-  var people = [
-    {'name': 'Alice', 'age': 30, 'city': 'New York'},
-    {'name': 'Bob', 'age': 25, 'city': 'Boston'},
-    {'name': 'Carol', 'age': 35, 'city': 'New York'},
-    {'name': 'David', 'age': 28, 'city': 'Boston'},
-  ];
-  
-  // Query DSL usage
-  var result = Query.from(people)
-      .where((p) => (p['age'] as int) > 27)
-      .where((p) => p['city'] == 'New York')
-      .select((p) => '${p['name']} (${p['age']})')
-      .execute();
-  
-  print('Query DSL result: $result');
-  
-  // Validation DSL
+  }
+
+// Validation DSL
   class ValidationRule<T> {
     final bool Function(T) predicate;
     final String message;
@@ -2628,26 +2592,6 @@ void main() {
       return this;
     }
     
-    Validator<String> get isEmail => must(
-      (email) => email.contains('@') && email.contains('.'),
-      'Must be a valid email address',
-    ) as Validator<String>;
-    
-    Validator<String> get isNotEmpty => must(
-      (value) => value.isNotEmpty,
-      'Must not be empty',
-    ) as Validator<String>;
-    
-    Validator<int> get isPositive => must(
-      (value) => value > 0,
-      'Must be positive',
-    ) as Validator<int>;
-    
-    Validator<int> isInRange(int min, int max) => must(
-      (value) => value >= min && value <= max,
-      'Must be between $min and $max',
-    ) as Validator<int>;
-    
     List<String> validate(T value) {
       var errors = <String>[];
       
@@ -2661,23 +2605,53 @@ void main() {
     }
   }
   
-  // Validation DSL usage
-  var emailValidator = Validator<String>()
-      .isNotEmpty
-      .isEmail
-      .must((email) => email.length >= 5, 'Must be at least 5 characters');
+  // String-specific validator extensions
+  class StringValidator extends Validator<String> {
+    StringValidator get isEmail {
+      must(
+        (email) => email.contains('@') && email.contains('.'),
+        'Must be a valid email address',
+      );
+      return this;
+    }
+    
+    StringValidator get isNotEmpty {
+      must(
+        (value) => value.isNotEmpty,
+        'Must not be empty',
+      );
+      return this;
+    }
+    
+    StringValidator minLength(int length) {
+      must(
+        (value) => value.length >= length,
+        'Must be at least $length characters',
+      );
+      return this;
+    }
+  }
   
-  var ageValidator = Validator<int>()
-      .isPositive
-      .isInRange(18, 100);
-  
-  print('\\nValidation DSL:');
-  print('Email "test@": ${emailValidator.validate("test@")}');
-  print('Email "user@example.com": ${emailValidator.validate("user@example.com")}');
-  print('Age 150: ${ageValidator.validate(150)}');
-  print('Age 25: ${ageValidator.validate(25)}');
-  
-  // Configuration DSL
+  // Int-specific validator extensions
+  class IntValidator extends Validator<int> {
+    IntValidator get isPositive {
+      must(
+        (value) => value > 0,
+        'Must be positive',
+      );
+      return this;
+    }
+    
+    IntValidator isInRange(int min, int max) {
+      must(
+        (value) => value >= min && value <= max,
+        'Must be between $min and $max',
+      );
+      return this;
+    }
+  }
+
+// Configuration DSL
   class ConfigBuilder {
     final Map<String, dynamic> _config = {};
     
@@ -2752,6 +2726,85 @@ void main() {
       'outputs': outputs,
     };
   }
+
+// Mathematical expression DSL
+abstract class Expr {
+  double evaluate();
+  String toString();
+}
+
+class Num extends Expr {
+  final double value;
+  Num(this.value);
+  
+  @override
+  double evaluate() => value;
+  
+  @override
+  String toString() => value.toString();
+}
+
+class Add extends Expr {
+  final Expr left, right;
+  Add(this.left, this.right);
+  
+  @override
+  double evaluate() => left.evaluate() + right.evaluate();
+  
+  @override
+  String toString() => '($left + $right)';
+}
+
+class Multiply extends Expr {
+  final Expr left, right;
+  Multiply(this.left, this.right);
+  
+  @override
+  double evaluate() => left.evaluate() * right.evaluate();
+  
+  @override
+  String toString() => '($left * $right)';
+}
+
+// DSL builder functions
+Expr num(double value) => Num(value);
+Expr add(Expr left, Expr right) => Add(left, right);
+Expr multiply(Expr left, Expr right) => Multiply(left, right);
+
+// Main function demonstrating all DSLs
+void main() {
+  // Sample data for Query DSL
+  var people = [
+    {'name': 'Alice', 'age': 30, 'city': 'New York'},
+    {'name': 'Bob', 'age': 25, 'city': 'Boston'},
+    {'name': 'Carol', 'age': 35, 'city': 'New York'},
+    {'name': 'David', 'age': 28, 'city': 'Boston'},
+  ];
+  
+  // Query DSL usage
+  var result = Query.from(people)
+      .where((p) => (p['age'] as int) > 27)
+      .where((p) => p['city'] == 'New York')
+      .select((p) => '${p['name']} (${p['age']})')
+      .execute();
+  
+  print('Query DSL result: $result');
+  
+  // Validation DSL usage
+  var emailValidator = StringValidator()
+      .isNotEmpty
+      .isEmail
+      .minLength(5);
+  
+  var ageValidator = IntValidator()
+      .isPositive
+      .isInRange(18, 100);
+  
+  print('\nValidation DSL:');
+  print('Email "test@": ${emailValidator.validate("test@")}');
+  print('Email "user@example.com": ${emailValidator.validate("user@example.com")}');
+  print('Age 150: ${ageValidator.validate(150)}');
+  print('Age 25: ${ageValidator.validate(25)}');
   
   // Configuration DSL usage
   var config = ConfigBuilder()
@@ -2773,54 +2826,10 @@ void main() {
       })
       .build();
   
-  print('\\nConfiguration DSL result:');
+  print('\nConfiguration DSL result:');
   config.forEach((key, value) {
     print('$key: $value');
   });
-  
-  // Mathematical expression DSL
-  abstract class Expr {
-    double evaluate();
-    String toString();
-  }
-  
-  class Num extends Expr {
-    final double value;
-    Num(this.value);
-    
-    @override
-    double evaluate() => value;
-    
-    @override
-    String toString() => value.toString();
-  }
-  
-  class Add extends Expr {
-    final Expr left, right;
-    Add(this.left, this.right);
-    
-    @override
-    double evaluate() => left.evaluate() + right.evaluate();
-    
-    @override
-    String toString() => '($left + $right)';
-  }
-  
-  class Multiply extends Expr {
-    final Expr left, right;
-    Multiply(this.left, this.right);
-    
-    @override
-    double evaluate() => left.evaluate() * right.evaluate();
-    
-    @override
-    String toString() => '($left * $right)';
-  }
-  
-  // DSL builder functions
-  Expr num(double value) => Num(value);
-  Expr add(Expr left, Expr right) => Add(left, right);
-  Expr multiply(Expr left, Expr right) => Multiply(left, right);
   
   // Mathematical expression DSL usage
   var expression = add(
@@ -2828,7 +2837,7 @@ void main() {
     add(num(4), num(5)),
   );
   
-  print('\\nMath DSL:');
+  print('\nMath DSL:');
   print('Expression: $expression');
   print('Result: ${expression.evaluate()}');
 }
