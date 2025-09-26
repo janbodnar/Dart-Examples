@@ -415,9 +415,11 @@ void main() {
   
   // Process active locations
   print('\nActive Locations:');
-  for (final (name: locName, coords: (x: posX, y: posY), active: true) 
-       in locations) {
-    print('  $locName at ($posX, $posY)');
+  for (final location in locations) {
+    switch (location) {
+      case (name: var locName, coords: (x: var posX, y: var posY), active: true):
+        print('  $locName at ($posX, $posY)');
+    }
   }
 }
 ```
