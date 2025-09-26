@@ -36,11 +36,6 @@ The `var` keyword provides convenience when types are obvious from context,
 while explicit types enhance code readability and enforce type safety at  
 compile time.  
 
-**Output:**
-```
-Alice is 30 years old from Canada
-Height: 1.75 meters
-```
 
 ## Final and Const Variables
 
@@ -71,12 +66,6 @@ like function calls or current time. The `const` variables must be known at
 compile time and contain only literal values or other compile-time constants.  
 Both prevent reassignment, ensuring immutability.  
 
-**Output:**
-```
-Current year: 2025
-PI value: 3.14159
-Maximum attempts: 3
-```
 
 ## Dynamic and Object Types
 
@@ -109,13 +98,6 @@ without compile-time checking. The `Object` type requires explicit type
 checking before accessing type-specific members. Use `dynamic` sparingly  
 as it sacrifices type safety benefits.  
 
-**Output:**
-```
-dynamicValue: Hello there! (String)
-dynamicValue: 42 (int)
-objectValue: World (String)
-Length: 5
-```
 
 ## Nullable Variables
 
@@ -152,13 +134,6 @@ default values for null scenarios, while the `!` operator asserts that a
 nullable value is definitely not null. These features help prevent null  
 reference exceptions at runtime.  
 
-**Output:**
-```
-Name: Bob
-Nickname: Bobby
-Age: 25
-12
-```
 
 ## Variable Scope
 
@@ -196,12 +171,6 @@ while `localCounter` exists only within the `incrementCounter` function.
 Each function call creates a new instance of local variables, maintaining  
 separate scopes.  
 
-**Output:**
-```
-Global: 1, Local: 1
-Global: 2, Local: 1
-Final global counter: 2
-```
 
 ## Wildcard Variables
 
@@ -288,13 +257,6 @@ computations until needed. They maintain null safety guarantees while providing
 initialization flexibility. Accessing a late variable before initialization  
 throws a runtime error.  
 
-**Output:**
-```
-Variables declared
-Performing expensive computation...
-This is a late-initialized variable
-Computed value: 1764
-```
 
 ## Type Annotations with Collections
 
@@ -337,16 +299,6 @@ Explicit type annotations prevent accidental insertion of wrong types and
 enable better IDE support with autocompletion and error detection. The  
 compiler enforces type safety at compile time rather than runtime.  
 
-**Output:**
-```
-Cities: [New York, London, Tokyo]
-Population of Tokyo: 14000000
-Unique numbers: {1, 2, 3}
-Updated collections:
-Cities: [New York, London, Tokyo, Paris]
-Population data: {New York: 8400000, London: 9500000, Tokyo: 14000000, Paris: 2200000}
-Numbers: {1, 2, 3, 4}
-```
 
 ## Variable Initialization Patterns
 
@@ -387,14 +339,6 @@ Pattern matching streamlines data extraction from complex structures, making
 code more readable and reducing boilerplate. It supports various patterns  
 including lists, records, maps, and nested combinations.  
 
-**Output:**
-```
-Name: Alice, Age: 25, Job: Engineer
-First: 1, Second: 2, Rest: [3, 4, 5]
-User: Bob, Age: 30
-List: [1, 2], Map value: value
-Position: (10.5, 20.3)
-```
 
 ## Cascade Operator with Variables
 
@@ -450,14 +394,6 @@ The cascade operator eliminates repetitive variable references and creates
 a more functional programming style. The null-aware cascade (`?..`) safely  
 handles nullable objects, preventing null pointer exceptions.  
 
-**Output:**
-```
-Hello there! I'm Charlie, 28 years old from San Francisco
-My hobbies: reading, hiking, coding
----
-Processed numbers: [1, 3, 5]
-Hello there! I'm Diana, 32 years old from null
-```
 
 ## Extension Methods on Variables
 
@@ -530,21 +466,6 @@ Extension methods provide a clean way to add functionality without inheritance
 or composition. They integrate seamlessly with the type system and support  
 method chaining, making code more expressive and maintainable.  
 
-**Output:**
-```
-user@example.com is valid email: true
-not-an-email is valid email: false
-123.45 is numeric: true
-Capitalized: Hello there!
-First number: 1
-Empty list first: null
-Shuffled: [3, 1, 5, 2, 4]
-2 is prime: true, ordinal: 2nd
-7 is prime: true, ordinal: 7th
-15 is prime: false, ordinal: 15th
-17 is prime: true, ordinal: 17th
-21 is prime: false, ordinal: 21st
-```
 
 ## Variable Destructuring with Records
 
@@ -612,18 +533,6 @@ Records provide a lightweight way to group related data without creating
 formal classes. They support both positional and named fields, making them  
 perfect for function returns and temporary data structures.  
 
-**Output:**
-```
-Person: Emma, Age: 24, Height: 5.6ft
-Employee: Frank, Age: 29
-Skills: Dart, Flutter, Firebase
-Name: Frank, Skills count: 3
-Coordinates: (100, 200), Label: Center Point
-Distance from (x: 50, y: 75) to (x: 100, y: 150)
-Alice is 30 years old
-Bob is 25 years old
-Charlie is 35 years old
-```
 
 ## Pattern Matching with Variables
 
@@ -707,16 +616,6 @@ Pattern matching with variables creates expressive and type-safe code that
 handles complex data structures elegantly. Guard clauses add conditional  
 logic to patterns, while destructuring extracts values efficiently.  
 
-**Output:**
-```
-Circle with radius 5.0 has area: 78.54
-Rectangle 4.0x6.0 has area: 24.00
-Triangle base=3.0, height=4.0 has area: 6.00
----
-List pattern: First: 1, Rest: [2, 3, 4, 5] (4 items)
-Grace (age 28) is an admin
-Category: Starts with small number
-```
 
 ## Variable Lifetime and Memory Management
 
@@ -826,35 +725,6 @@ versus instance variables, and explicit cleanup when needed. Proper memory
 management prevents memory leaks and ensures efficient resource utilization  
 in long-running applications.  
 
-**Output:**
-```
-=== Variable Lifetime Demo ===
-Created Resource_1
-Global resource: Resource_1
-
-=== Function Scope Demo ===
-Created Resource_2
-Created Resource_3
-Resource_3 completed work in 1234μs
-Resource_2 completed work in 987μs
-
-=== Static vs Instance Variables ===
-Created Resource_4
-Created Resource_5
-Created Resource_6
-Created 6 total instances
-Manager: Resource_4
-Manager: Resource_5
-Manager: Resource_6
-Cleared manager references
-
-=== Memory Management ===
-Created list with 100 items
-Processed items containing "1": 19
-List cleared, length: 0
-Resource_1 completed work in 876μs
-Program ending - global resource will be cleaned up
-```
 
 ## Best Practices
 
