@@ -1,10 +1,6 @@
 
 <h1>Dart Variables</h1>
 
-<p class="last_mod">
-last modified June 4, 2025
-</p>
-
 <p>
 In Dart, variables are used to store and manipulate data in programs. They act
 as named containers for values that can change during program execution.
