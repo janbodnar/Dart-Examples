@@ -81,10 +81,7 @@ This represents the updating phase of the `while` loop. We increment the
 counter to ensure the loop progresses toward termination. Improper handling  
 of this phase can lead to infinite loops that never terminate.  
 
-```
-$ dart run main.dart
-55
-```
+
 
 
 ## Classic For Loop
@@ -121,10 +118,7 @@ This occurs only once before the first iteration. Next, the condition `i < 10`
 is evaluated before each iteration. The loop body executes when true, then the  
 increment `i++` occurs, and the cycle repeats until the condition becomes false.  
 
-```
-$ dart run main.dart
-45
-```
+
 
 
 ## For Loop with Lists
@@ -184,26 +178,7 @@ This loop prints elements in reverse order by initializing the counter to the
 last valid index (length - 1), checking that it remains non-negative, and  
 decrementing after each iteration until reaching the first element.  
 
-```
-$ dart run main.dart
-Mercury
-Venus
-Earth
-Mars
-Jupiter
-Saturn
-Uranus
-Pluto
-In reverse:
-Pluto
-Uranus
-Saturn
-Jupiter
-Mars
-Earth
-Venus
-Mercury
-```
+
 
 
 ## For Loop with Maps
@@ -237,21 +212,7 @@ This for loop iterates through all map keys using the `keys` property. When a
 for loop contains only one statement, you can write the entire construct on a  
 single line for brevity and improved readability.  
 
-```
-$ dart run main.dart 
-1
-2
-3
-4
-Apple
-Banana
-Cherry
-Orange
-1: Apple
-2: Banana
-3: Cherry
-4: Orange
-```
+
 
 
 ## For-In Loop
@@ -284,14 +245,7 @@ We iterate through the list of numbers using the for-in syntax. The variable
 loop automatically progresses through all elements, eliminating index  
 management and boundary checking concerns.  
 
-```
-$ dart run main.dart
-1
-4
-9
-16
-25
-```
+
 
 
 ## Nested For Loops
@@ -332,18 +286,7 @@ completely for each iteration of the outer loop (with counter `i`). This
 creates a systematic traversal pattern that processes all possible  
 combinations of the two collections.  
 
-```
-$ dart run main.dart
-AA
-AB
-AC
-BA
-BB
-BC
-CA
-CB
-CC
-```
+
 
 
 ## Break Statement
@@ -377,15 +320,7 @@ random numbers until we encounter the value 22, at which point the break
 statement terminates the loop immediately, demonstrating controlled exit from  
 potentially endless loops.  
 
-```
-$ dart run main.dart
-21
-4
-20
-20
-22
-Loop terminated!
-```
+
 
 
 ## Continue Statement
@@ -427,19 +362,7 @@ statement executes, skipping the remaining loop body code (the print statement)
 and beginning the next iteration. This allows filtering elements during  
 iteration without complex conditional logic.  
 
-```
-$ dart run main.dart
-1
-3
-5
-7
-9
-11
-13
-15
-17
-19
-```
+
 
 ## Do-While Loop
 
@@ -473,14 +396,7 @@ This example demonstrates the key difference between `do-while` and regular
 condition, guaranteeing at least one execution even when the condition is  
 initially false.  
 
-```
-$ dart run main.dart
-Count: 0
-Count: 1
-Count: 2
-Final count: 3
-This executes once: 10
-```
+
 
 ## ForEach Method
 
@@ -515,18 +431,7 @@ The forEach method passes each element to the provided function, handling
 iteration internally. The `asMap().forEach` pattern provides both index and  
 value when you need positional information during processing.  
 
-```
-$ dart run main.dart
-Color: red
-Color: green
-Color: blue
-Color: yellow
-0: red
-1: green
-2: blue
-3: yellow
-Sum of squares: 55
-```
+
 
 ## Loop with Where Filter
 
@@ -563,21 +468,7 @@ The where method returns an iterable containing only elements that satisfy the
 predicate function. Combined with forEach, this creates powerful filtering and  
 processing pipelines without explicit loop constructs or conditional statements.  
 
-```
-$ dart run main.dart
-Even number: 2
-Even number: 4
-Even number: 6
-Even number: 8
-Even number: 10
-Long word: elephant
-Long word: butterfly
-Adults:
-  Age: 22
-  Age: 30
-  Age: 25
-  Age: 19
-```
+
 
 ## Loop with Map Transformation
 
@@ -616,17 +507,7 @@ The map method creates a lazy iterable where transformations occur during
 iteration. Call `toList()` to create a concrete list from the transformed  
 values when needed for storage or multiple iterations.  
 
-```
-$ dart run main.dart
-Original: [1, 2, 3, 4, 5]
-Squares: [1, 4, 9, 16, 25]
-Uppercase names: [ALICE, BOB, CHARLIE]
-Temperature conversions:
-  0°C = 32.0°F
-  25°C = 77.0°F
-  30°C = 86.0°F
-  100°C = 212.0°F
-```
+
 
 ## Loop with Reduce and Fold
 
@@ -671,17 +552,7 @@ Reduce requires a non-empty collection and uses the first element as the
 accumulator's initial value. Fold works with any collection size and accepts  
 an explicit initial value, making it more flexible for complex accumulations.  
 
-```
-$ dart run main.dart
-Numbers: [1, 2, 3, 4, 5]
-Sum: 15
-Product: 120
-Maximum: 5
-Concatenated: Start:-1-2-3-4-5
-Sum with initial 100: 115
-Total character count: 22
-Sentence: Hello there Dart programmer
-```
+
 
 ## Asynchronous Loop with Stream
 
@@ -727,26 +598,7 @@ The `await for` loop processes stream elements asynchronously, waiting for each
 element to become available. This pattern is crucial for handling data streams,  
 user input events, or any asynchronous sequence of operations.  
 
-```
-$ dart run main.dart
-Starting stream processing...
-Received: 1
-  Processed: 1
-Received: 2
-  Processed: 4
-Received: 3
-  Processed: 9
-Received: 4
-  Processed: 16
-Received: 5
-  Processed: 25
-Stream processing complete!
 
-Stream transformation example:
-Transformed value: 6
-Transformed value: 8
-Transformed value: 10
-```
 
 ## Labeled Break and Continue
 
@@ -807,37 +659,5 @@ Break and continue statements can reference these labels to control execution
 flow precisely, enabling sophisticated control structures in complex nested  
 scenarios without convoluted conditional logic.  
 
-```
-$ dart run main.dart
-Labeled break example:
-Processing (1, 1)
-Processing (1, 2)
-Processing (1, 3)
-Processing (2, 1)
-Breaking outer loop at (2, 2)
 
-Labeled continue example:
-Processing (1, 1)
-Processing (1, 2)
-Continuing outer loop at (1, 3)
-Processing (2, 1)
-Processing (2, 2)
-Continuing outer loop at (2, 3)
-Processing (3, 1)
-Processing (3, 2)
-Continuing outer loop at (3, 3)
-
-Complex nested structure with multiple labels:
-(1, 1, 1)
-(1, 1, 2)
-(1, 1, 3)
-(1, 2, 1)
-Continue level2 from (1, 2, 2)
-(1, 3, 1)
-(1, 3, 2)
-(1, 3, 3)
-(2, 1, 1)
-(2, 1, 2)
-Break level1 from (2, 1, 3)
-```
 
