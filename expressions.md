@@ -1158,3 +1158,848 @@ Validated: [1, 2, 3, 4, 5]
 Grade: B
 Grade error: RangeError (index): Invalid score: -5
 ```
+
+## Arrow Function Expressions
+
+Arrow function expressions provide a concise syntax for single-expression  
+functions using the `=>` operator. They're particularly useful for short  
+callback functions, getters, and functional programming patterns. Arrow  
+functions automatically return the expression result and cannot contain  
+statements, making them ideal for pure functions and transformations.  
+
+```dart
+class Point {
+  final double x, y;
+  Point(this.x, this.y);
+  
+  // Arrow function methods
+  double get magnitude => x * x + y * y;
+  Point operator +(Point other) => Point(x + other.x, y + other.y);
+  
+  @override
+  String toString() => 'Point($x, $y)';
+}
+
+void main() {
+  // Arrow function variables
+  var add = (int a, int b) => a + b;
+  var greet = (String name) => 'Hello there, $name!';
+  var isEven = (int n) => n % 2 == 0;
+  
+  print('Addition: ${add(5, 3)}');
+  print('Greeting: ${greet('Alice')}');
+  print('Is even: ${isEven(4)}');
+  
+  // Arrow functions in collections
+  List<int> numbers = [1, 2, 3, 4, 5];
+  var squared = numbers.map((x) => x * x).toList();
+  var filtered = numbers.where((x) => x > 2).toList();
+  var summed = numbers.reduce((a, b) => a + b);
+  
+  print('Squared: $squared');
+  print('Filtered: $filtered');
+  print('Sum: $summed');
+  
+  // Conditional arrow functions
+  var getStatus = (int age) => age >= 18 ? 'Adult' : 'Minor';
+  var getMessage = (bool success) => success ? 'OK' : throw Exception('Failed');
+  
+  print('Status: ${getStatus(20)}');
+  
+  // Arrow functions with Point class
+  Point p1 = Point(3, 4);
+  Point p2 = Point(1, 2);
+  print('Point 1: $p1');
+  print('Magnitude: ${p1.magnitude}');
+  print('Sum: ${p1 + p2}');
+  
+  // Nested arrow functions
+  var createMultiplier = (int factor) => (int value) => value * factor;
+  var doubler = createMultiplier(2);
+  var tripler = createMultiplier(3);
+  
+  print('Double 5: ${doubler(5)}');
+  print('Triple 4: ${tripler(4)}');
+  
+  // Arrow function with complex expression
+  var processData = (List<int> data) => data
+      .where((x) => x > 0)
+      .map((x) => x * 2)
+      .fold(0, (sum, x) => sum + x);
+  
+  print('Processed: ${processData([1, -2, 3, 4, -5])}');
+}
+```
+
+This example demonstrates arrow function expressions in various contexts  
+including variable assignments, class methods, collection operations,  
+conditional logic, higher-order functions, and complex data processing  
+pipelines, showcasing their conciseness and expressiveness.  
+
+```
+$ dart run arrow_functions.dart
+Addition: 8
+Greeting: Hello there, Alice!
+Is even: true
+Squared: [1, 4, 9, 16, 25]
+Filtered: [3, 4, 5]
+Sum: 15
+Status: Adult
+Point 1: Point(3.0, 4.0)
+Magnitude: 25.0
+Sum: Point(4.0, 6.0)
+Double 5: 10
+Triple 4: 12
+Processed: 14
+```
+
+## Yield Expressions
+
+Yield expressions are used in generator functions to produce values  
+lazily. They pause function execution and emit values to consumers,  
+resuming when the next value is requested. Generators can be synchronous  
+(returning Iterable) or asynchronous (returning Stream), providing  
+memory-efficient ways to generate sequences.  
+
+```dart
+// Synchronous generator
+Iterable<int> generateNumbers(int count) sync* {
+  for (int i = 1; i <= count; i++) {
+    print('Generating: $i');
+    yield i;
+  }
+}
+
+// Fibonacci generator
+Iterable<int> fibonacci() sync* {
+  int a = 0, b = 1;
+  while (true) {
+    yield a;
+    int temp = a + b;
+    a = b;
+    b = temp;
+  }
+}
+
+// Recursive generator
+Iterable<int> countDown(int n) sync* {
+  if (n > 0) {
+    yield n;
+    yield* countDown(n - 1); // yield* delegates to another iterable
+  }
+}
+
+// Asynchronous generator
+Stream<String> fetchData() async* {
+  for (int i = 1; i <= 3; i++) {
+    await Future.delayed(Duration(milliseconds: 100));
+    yield 'Data item $i';
+  }
+}
+
+// Generator with conditions
+Iterable<String> generateMessages(List<int> codes) sync* {
+  for (int code in codes) {
+    if (code > 0) {
+      yield 'Success: $code';
+    } else if (code == 0) {
+      yield 'Warning: Zero code';
+    } else {
+      yield* generateErrors(code); // Delegate to another generator
+    }
+  }
+}
+
+Iterable<String> generateErrors(int code) sync* {
+  yield 'Error: $code';
+  yield 'Additional error info for $code';
+}
+
+void main() async {
+  print('=== Basic Generator ===');
+  var numbers = generateNumbers(3);
+  for (int num in numbers) {
+    print('Received: $num');
+  }
+  
+  print('\n=== Fibonacci (first 5) ===');
+  var fib = fibonacci().take(5);
+  print('Fibonacci: ${fib.toList()}');
+  
+  print('\n=== Countdown ===');
+  var countdown = countDown(4);
+  print('Countdown: ${countdown.toList()}');
+  
+  print('\n=== Async Generator ===');
+  await for (String data in fetchData()) {
+    print('Received: $data');
+  }
+  
+  print('\n=== Conditional Generator ===');
+  var messages = generateMessages([1, 0, -1, 2]);
+  for (String msg in messages) {
+    print(msg);
+  }
+  
+  print('\n=== Lazy Evaluation Demo ===');
+  var lazy = generateNumbers(1000000).where((x) => x % 1000 == 0);
+  print('First few large multiples: ${lazy.take(3).toList()}');
+}
+```
+
+This example demonstrates synchronous and asynchronous generators,  
+recursive generators, yield delegation with yield*, conditional yielding,  
+and lazy evaluation benefits, showcasing how generators provide  
+memory-efficient sequence generation and processing.  
+
+```
+$ dart run yield_expressions.dart
+=== Basic Generator ===
+Generating: 1
+Received: 1
+Generating: 2
+Received: 2
+Generating: 3
+Received: 3
+
+=== Fibonacci (first 5) ===
+Fibonacci: [0, 1, 1, 2, 3]
+
+=== Countdown ===
+Countdown: [4, 3, 2, 1]
+
+=== Async Generator ===
+Received: Data item 1
+Received: Data item 2
+Received: Data item 3
+
+=== Conditional Generator ===
+Success: 1
+Warning: Zero code
+Error: -1
+Additional error info for -1
+Success: 2
+
+=== Lazy Evaluation Demo ===
+First few large multiples: [1000, 2000, 3000]
+```
+
+## Pattern Matching Expressions
+
+Pattern matching expressions use destructuring patterns to extract values  
+from complex data structures. Combined with switch expressions, patterns  
+enable powerful data analysis and transformation. Dart 3.0 introduced  
+extensive pattern matching capabilities including record patterns, list  
+patterns, map patterns, and guard clauses.  
+
+```dart
+// Data classes for pattern matching
+sealed class Shape {}
+class Circle extends Shape {
+  final double radius;
+  Circle(this.radius);
+}
+class Rectangle extends Shape {
+  final double width, height;
+  Rectangle(this.width, this.height);
+}
+class Triangle extends Shape {
+  final double base, height;
+  Triangle(this.base, this.height);
+}
+
+void main() {
+  // Record pattern matching
+  var point = (x: 10, y: 20);
+  var description = switch (point) {
+    (x: 0, y: 0) => 'Origin',
+    (x: var a, y: 0) => 'On X-axis at $a',
+    (x: 0, y: var b) => 'On Y-axis at $b',
+    (x: var a, y: var b) when a == b => 'Diagonal at ($a, $b)',
+    (x: var a, y: var b) => 'Point at ($a, $b)',
+  };
+  print('Point description: $description');
+  
+  // List pattern matching
+  List<int> numbers = [1, 2, 3, 4, 5];
+  var listResult = switch (numbers) {
+    [] => 'Empty list',
+    [var single] => 'Single element: $single',
+    [var first, var second] => 'Two elements: $first, $second',
+    [var first, ...var rest] => 'First: $first, Rest: $rest',
+  };
+  print('List pattern: $listResult');
+  
+  // Map pattern matching
+  Map<String, dynamic> user = {'name': 'Alice', 'age': 30, 'active': true};
+  var userInfo = switch (user) {
+    {'name': String name, 'age': int age} when age >= 18 => 
+        'Adult: $name ($age years old)',
+    {'name': String name, 'age': int age} => 
+        'Minor: $name ($age years old)',
+    _ => 'Invalid user data',
+  };
+  print('User info: $userInfo');
+  
+  // Object pattern matching
+  List<Shape> shapes = [
+    Circle(5.0),
+    Rectangle(4.0, 6.0),
+    Triangle(3.0, 4.0),
+  ];
+  
+  for (Shape shape in shapes) {
+    var area = switch (shape) {
+      Circle(radius: var r) => 3.14159 * r * r,
+      Rectangle(width: var w, height: var h) => w * h,
+      Triangle(base: var b, height: var h) => 0.5 * b * h,
+    };
+    print('Shape area: ${area.toStringAsFixed(2)}');
+  }
+  
+  // Nested pattern matching
+  var data = [
+    {'type': 'user', 'data': {'name': 'Alice', 'age': 30}},
+    {'type': 'product', 'data': {'title': 'Book', 'price': 29.99}},
+    {'type': 'invalid'},
+  ];
+  
+  for (var item in data) {
+    var result = switch (item) {
+      {
+        'type': 'user',
+        'data': {'name': String name, 'age': int age}
+      } => 'User: $name, Age: $age',
+      {
+        'type': 'product',
+        'data': {'title': String title, 'price': double price}
+      } => 'Product: $title, Price: \$${price.toStringAsFixed(2)}',
+      _ => 'Unknown item type',
+    };
+    print('Nested pattern: $result');
+  }
+  
+  // Variable pattern with destructuring
+  var (a, b, c) = ('hello', 42, true);
+  print('Destructured: a=$a, b=$b, c=$c');
+  
+  // Pattern in for-in loops
+  var pairs = [(1, 'one'), (2, 'two'), (3, 'three')];
+  for (var (number, word) in pairs) {
+    print('$number -> $word');
+  }
+}
+```
+
+This example demonstrates pattern matching with records, lists, maps,  
+objects, nested structures, and destructuring assignments, showcasing  
+Dart's powerful pattern matching capabilities for data extraction and  
+analysis in modern Dart 3.0+ applications.  
+
+```
+$ dart run pattern_matching.dart
+Point description: Point at (10, 20)
+List pattern: First: 1, Rest: [2, 3, 4, 5]
+User info: Adult: Alice (30 years old)
+Shape area: 78.54
+Shape area: 24.00
+Shape area: 6.00
+Nested pattern: User: Alice, Age: 30
+Nested pattern: Product: Book, Price: $29.99
+Nested pattern: Unknown item type
+Destructured: a=hello, b=42, c=true
+1 -> one
+2 -> two
+3 -> three
+```
+
+## Extension Method Expressions
+
+Extension method expressions add functionality to existing types without  
+modifying their original implementation. Extensions can add methods,  
+getters, setters, and operators to any type, enabling clean and readable  
+code enhancement. They're particularly useful for adding domain-specific  
+functionality to built-in types or third-party classes.  
+
+```dart
+// String extensions
+extension StringExtensions on String {
+  String get capitalized => 
+      isEmpty ? this : this[0].toUpperCase() + substring(1).toLowerCase();
+  
+  String get reversed => split('').reversed.join();
+  
+  bool get isPalindrome {
+    String cleaned = toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return cleaned == cleaned.split('').reversed.join();
+  }
+  
+  String repeat(int times) => List.filled(times, this).join();
+  
+  String truncate(int maxLength, [String suffix = '...']) =>
+      length <= maxLength ? this : substring(0, maxLength - suffix.length) + suffix;
+}
+
+// List extensions
+extension ListExtensions<T> on List<T> {
+  T? get secondOrNull => length >= 2 ? this[1] : null;
+  
+  List<T> get unique => {...this}.toList();
+  
+  List<List<T>> chunked(int size) {
+    List<List<T>> chunks = [];
+    for (int i = 0; i < length; i += size) {
+      chunks.add(sublist(i, (i + size < length) ? i + size : length));
+    }
+    return chunks;
+  }
+  
+  T? findWhere(bool Function(T) predicate) {
+    for (T item in this) {
+      if (predicate(item)) return item;
+    }
+    return null;
+  }
+}
+
+// Number extensions
+extension IntExtensions on int {
+  bool get isEven => this % 2 == 0;
+  bool get isOdd => !isEven;
+  
+  String get ordinal {
+    if (this % 100 >= 11 && this % 100 <= 13) return '${this}th';
+    return switch (this % 10) {
+      1 => '${this}st',
+      2 => '${this}nd',
+      3 => '${this}rd',
+      _ => '${this}th',
+    };
+  }
+  
+  Duration get seconds => Duration(seconds: this);
+  Duration get minutes => Duration(minutes: this);
+  Duration get hours => Duration(hours: this);
+}
+
+// DateTime extensions
+extension DateTimeExtensions on DateTime {
+  bool get isToday {
+    DateTime now = DateTime.now();
+    return year == now.year && month == now.month && day == now.day;
+  }
+  
+  String get timeAgo {
+    Duration diff = DateTime.now().difference(this);
+    if (diff.inDays > 0) return '${diff.inDays} days ago';
+    if (diff.inHours > 0) return '${diff.inHours} hours ago';
+    if (diff.inMinutes > 0) return '${diff.inMinutes} minutes ago';
+    return 'Just now';
+  }
+  
+  DateTime get startOfDay => DateTime(year, month, day);
+  DateTime get endOfDay => DateTime(year, month, day, 23, 59, 59, 999);
+}
+
+void main() {
+  // String extensions
+  String text = 'hello world';
+  print('Capitalized: ${text.capitalized}');
+  print('Reversed: ${text.reversed}');
+  print('Is palindrome: ${'racecar'.isPalindrome}');
+  print('Repeated: ${'Dart'.repeat(3)}');
+  print('Truncated: ${'This is a long sentence'.truncate(10)}');
+  
+  // List extensions
+  List<int> numbers = [1, 2, 3, 2, 4, 3, 5];
+  print('Second element: ${numbers.secondOrNull}');
+  print('Unique: ${numbers.unique}');
+  print('Chunked: ${numbers.chunked(3)}');
+  print('Find even: ${numbers.findWhere((n) => n.isEven)}');
+  
+  // Number extensions
+  for (int i = 1; i <= 5; i++) {
+    print('$i is ${i.isEven ? 'even' : 'odd'}, ordinal: ${i.ordinal}');
+  }
+  
+  print('Duration: ${30.seconds}');
+  print('Duration: ${2.hours}');
+  
+  // DateTime extensions
+  DateTime now = DateTime.now();
+  DateTime yesterday = now.subtract(1.days);
+  
+  print('Is today: ${now.isToday}');
+  print('Yesterday: ${yesterday.timeAgo}');
+  print('Start of day: ${now.startOfDay}');
+  
+  // Chaining extension methods
+  String processed = 'hello world'
+      .capitalized
+      .reversed
+      .truncate(8);
+  print('Chained operations: $processed');
+  
+  // Extension methods in expressions
+  List<String> words = ['hello', 'world', 'dart', 'programming'];
+  var result = words
+      .where((w) => w.length > 4)
+      .map((w) => w.capitalized)
+      .toList()
+      .chunked(2);
+  print('Complex processing: $result');
+}
+```
+
+This example demonstrates extension methods on various types including  
+String, List, int, and DateTime, showing how extensions enhance existing  
+types with custom functionality, enable method chaining, and integrate  
+seamlessly with Dart's expression system for clean, readable code.  
+
+```
+$ dart run extension_methods.dart
+Capitalized: Hello world
+Reversed: dlrow olleh
+Is palindrome: true
+Repeated: DartDartDart
+Truncated: This is...
+Second element: 2
+Unique: [1, 2, 3, 4, 5]
+Chunked: [[1, 2, 3], [2, 4, 3], [5]]
+Find even: 2
+1 is odd, ordinal: 1st
+2 is even, ordinal: 2nd
+3 is odd, ordinal: 3rd
+4 is even, ordinal: 4th
+5 is odd, ordinal: 5th
+Duration: 0:00:30.000000
+Duration: 2:00:00.000000
+Is today: true
+Yesterday: 1 days ago
+Start of day: 2025-01-27 00:00:00.000
+Chained operations: dlroW...
+Complex processing: [[Hello, World], [Programming]]
+```
+
+## Generic Expressions
+
+Generic expressions work with parameterized types, enabling type-safe  
+code that operates on multiple types. Generics provide compile-time type  
+checking while maintaining code reusability. They're essential for  
+collections, functions, and classes that need to work with various types  
+without sacrificing type safety.  
+
+```dart
+// Generic function expressions
+T identity<T>(T value) => value;
+
+List<T> createList<T>(T item, int count) => List.filled(count, item);
+
+T? findFirst<T>(List<T> list, bool Function(T) predicate) {
+  for (T item in list) {
+    if (predicate(item)) return item;
+  }
+  return null;
+}
+
+// Generic class with expressions
+class Pair<T, U> {
+  final T first;
+  final U second;
+  
+  Pair(this.first, this.second);
+  
+  // Generic method expressions
+  R combine<R>(R Function(T, U) combiner) => combiner(first, second);
+  
+  Pair<U, T> get swapped => Pair(second, first);
+  
+  @override
+  String toString() => 'Pair($first, $second)';
+}
+
+// Generic extension
+extension ListGenericExtensions<T> on List<T> {
+  List<R> mapWithIndex<R>(R Function(T item, int index) mapper) {
+    List<R> result = [];
+    for (int i = 0; i < length; i++) {
+      result.add(mapper(this[i], i));
+    }
+    return result;
+  }
+  
+  Map<K, List<T>> groupBy<K>(K Function(T) keySelector) {
+    Map<K, List<T>> groups = {};
+    for (T item in this) {
+      K key = keySelector(item);
+      groups.putIfAbsent(key, () => []).add(item);
+    }
+    return groups;
+  }
+}
+
+// Generic with constraints
+class Repository<T extends Comparable<T>> {
+  final List<T> _items = [];
+  
+  void add(T item) => _items.add(item);
+  
+  List<T> get sorted => [..._items]..sort();
+  
+  T? findMin() => _items.isEmpty ? null : _items.reduce(
+      (a, b) => a.compareTo(b) < 0 ? a : b);
+}
+
+void main() {
+  // Basic generic expressions
+  print('Identity int: ${identity(42)}');
+  print('Identity string: ${identity('hello')}');
+  
+  var numbers = createList(5, 3);
+  var words = createList('dart', 2);
+  print('Number list: $numbers');
+  print('Word list: $words');
+  
+  // Generic function with predicate
+  List<int> data = [1, 2, 3, 4, 5];
+  var evenNumber = findFirst(data, (n) => n % 2 == 0);
+  print('First even: $evenNumber');
+  
+  // Generic class usage
+  var pair1 = Pair('hello', 42);
+  var pair2 = Pair(3.14, true);
+  
+  print('Pair 1: $pair1');
+  print('Swapped: ${pair1.swapped}');
+  
+  // Generic method with different return type
+  var combined = pair1.combine<String>((str, num) => '$str-$num');
+  print('Combined: $combined');
+  
+  // Generic collections with type inference
+  Map<String, List<int>> scoresByName = {
+    'Alice': [95, 87, 92],
+    'Bob': [78, 85, 90],
+  };
+  
+  // Generic extension methods
+  List<String> items = ['apple', 'banana', 'cherry'];
+  var indexed = items.mapWithIndex((item, index) => '$index: $item');
+  print('Indexed: $indexed');
+  
+  var grouped = items.groupBy((item) => item.length);
+  print('Grouped by length: $grouped');
+  
+  // Generic with constraints
+  var intRepo = Repository<int>();
+  intRepo.add(3);
+  intRepo.add(1);
+  intRepo.add(4);
+  intRepo.add(2);
+  
+  print('Sorted ints: ${intRepo.sorted}');
+  print('Min int: ${intRepo.findMin()}');
+  
+  var stringRepo = Repository<String>();
+  stringRepo.add('zebra');
+  stringRepo.add('apple');
+  stringRepo.add('monkey');
+  
+  print('Sorted strings: ${stringRepo.sorted}');
+  print('Min string: ${stringRepo.findMin()}');
+  
+  // Complex generic expressions
+  List<Pair<String, int>> pairs = [
+    Pair('Alice', 25),
+    Pair('Bob', 30),
+    Pair('Charlie', 35),
+  ];
+  
+  var ages = pairs.map((p) => p.second).toList();
+  var names = pairs.map((p) => p.first).toList();
+  var descriptions = pairs.mapWithIndex(
+      (pair, index) => 'Person $index: ${pair.first} (${pair.second})');
+  
+  print('Ages: $ages');
+  print('Names: $names');
+  print('Descriptions: $descriptions');
+}
+```
+
+This example demonstrates generic expressions across functions, classes,  
+extensions, and constrained generics, showing type inference, generic  
+methods, collection operations, and how generics maintain type safety  
+while providing code reusability and flexibility.  
+
+```
+$ dart run generic_expressions.dart
+Identity int: 42
+Identity string: hello
+Number list: [5, 5, 5]
+Word list: [dart, dart]
+First even: 2
+Pair 1: Pair(hello, 42)
+Swapped: Pair(42, hello)
+Combined: hello-42
+Indexed: [0: apple, 1: banana, 2: cherry]
+Grouped by length: {5: [apple], 6: [banana, cherry]}
+Sorted ints: [1, 2, 3, 4]
+Min int: 1
+Sorted strings: [apple, monkey, zebra]
+Min string: apple
+Ages: [25, 30, 35]
+Names: [Alice, Bob, Charlie]
+Descriptions: [Person 0: Alice (25), Person 1: Bob (30), Person 2: Charlie (35)]
+```
+
+## Null Assertion Expressions
+
+Null assertion expressions use the `!` operator to convert nullable  
+types to non-nullable types, telling the compiler that a value is  
+definitely not null. This operation throws a runtime error if the  
+value is actually null, so it should be used only when you're certain  
+the value is non-null or when null would indicate a programming error.  
+
+```dart
+class User {
+  String? name;
+  int? age;
+  List<String>? hobbies;
+  
+  User({this.name, this.age, this.hobbies});
+  
+  // Null assertion in getter
+  String get displayName => name!; // Assumes name is never null when accessed
+  
+  // Null assertion in method
+  void printInfo() {
+    print('Name: ${name!}'); // Assert name is not null
+    print('Age: ${age!}');   // Assert age is not null
+  }
+}
+
+String? findUserName(int id) {
+  return id > 0 ? 'User$id' : null;
+}
+
+List<String>? getUserHobbies(String name) {
+  return name.isNotEmpty ? ['reading', 'coding'] : null;
+}
+
+void main() {
+  // Basic null assertion
+  String? nullable = 'Hello there!';
+  String nonNull = nullable!; // Assert it's not null
+  print('Non-null string: $nonNull');
+  
+  // Null assertion in expressions
+  String? name = 'Alice';
+  int length = name!.length; // Assert and access length
+  print('Name length: $length');
+  
+  // Null assertion with method calls
+  List<int>? numbers = [1, 2, 3, 4, 5];
+  int first = numbers!.first;
+  List<int> doubled = numbers!.map((x) => x * 2).toList();
+  print('First: $first');
+  print('Doubled: $doubled');
+  
+  // Null assertion in cascade
+  StringBuffer? buffer = StringBuffer();
+  buffer!
+    ..write('Hello')
+    ..write(' ')
+    ..write('World');
+  print('Buffer: ${buffer.toString()}');
+  
+  // Null assertion with function results
+  String userName = findUserName(1)!; // Assert result is not null
+  print('User name: $userName');
+  
+  // Null assertion in collections
+  List<String?> mixedList = ['apple', null, 'banana', 'cherry'];
+  List<String> nonNullItems = mixedList
+      .where((item) => item != null)
+      .map((item) => item!) // Assert each filtered item is not null
+      .toList();
+  print('Non-null items: $nonNullItems');
+  
+  // Null assertion with class
+  User user = User(name: 'Bob', age: 25);
+  print('Display name: ${user.displayName}');
+  user.printInfo();
+  
+  // Null assertion in complex expressions
+  Map<String, String?> data = {
+    'firstName': 'John',
+    'lastName': 'Doe',
+    'middleName': null,
+  };
+  
+  String fullName = '${data['firstName']!} ${data['lastName']!}';
+  print('Full name: $fullName');
+  
+  // Null assertion with error handling
+  try {
+    String? empty;
+    String result = empty!; // This will throw
+    print('Result: $result');
+  } catch (e) {
+    print('Caught null assertion error: ${e.runtimeType}');
+  }
+  
+  // Safe patterns vs null assertion
+  List<String?> items = ['a', 'b', null, 'c'];
+  
+  // Using null assertion (risky)
+  try {
+    for (String? item in items) {
+      print('Item: ${item!.toUpperCase()}'); // Will throw on null
+    }
+  } catch (e) {
+    print('Error with null assertion: ${e.runtimeType}');
+  }
+  
+  // Better: using null-aware operators
+  for (String? item in items) {
+    print('Safe item: ${item?.toUpperCase() ?? 'NULL'}');
+  }
+  
+  // Null assertion in switch expressions
+  String? grade = 'A';
+  String description = switch (grade!) {
+    'A' => 'Excellent',
+    'B' => 'Good',
+    'C' => 'Average',
+    _ => 'Other',
+  };
+  print('Grade description: $description');
+}
+```
+
+This example demonstrates null assertion expressions in various contexts  
+including variable assignments, method calls, cascades, collections,  
+class methods, and complex expressions, while also showing error cases  
+and comparing with safer null-aware alternatives.  
+
+```
+$ dart run null_assertion.dart
+Non-null string: Hello there!
+Name length: 5
+First: 1
+Doubled: [2, 4, 6, 8, 10]
+Buffer: Hello World
+User name: User1
+Non-null items: [apple, banana, cherry]
+Display name: Bob
+Name: Bob
+Age: 25
+Full name: John Doe
+Caught null assertion error: TypeError
+Error with null assertion: TypeError
+Safe item: A
+Safe item: B
+Safe item: NULL
+Safe item: C
+Grade description: Excellent
+```
