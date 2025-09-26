@@ -38,13 +38,6 @@ This example demonstrates four common ways to create DateTime objects:
 using the current time, specifying exact components, creating UTC times,  
 and constructing from epoch milliseconds.  
 
-```
-$ dart run create_datetime.dart
-Current time: 2024-03-15 14:30:45.123456
-Specific time: 2024-03-15 14:30:45.000
-UTC time: 2024-03-15 14:30:45.000Z
-From milliseconds: 2024-03-15 14:30:45.000
-```
 
 ## DateTime Components
 
@@ -76,18 +69,6 @@ These properties provide direct access to date and time components without
 requiring complex parsing operations. The weekday property follows ISO 8601  
 standard where Monday is 1 and Sunday is 7.  
 
-```
-$ dart run datetime_components.dart
-Year: 2024
-Month: 12
-Day: 25
-Hour: 10
-Minute: 30
-Second: 45
-Millisecond: 0
-Microsecond: 0
-Day of week: 3
-```
 
 ## Parsing DateTime Strings
 
@@ -130,17 +111,6 @@ The parse method throws FormatException for invalid formats, while tryParse
 returns null. This example shows different valid ISO 8601 formats that Dart  
 can automatically recognize and parse correctly.  
 
-```
-$ dart run parse_datetime.dart
-Parsed ISO: 2024-03-15 14:30:45.123Z
-Parsed local: 2024-03-15 14:30:45.000
-Valid parse: 2024-03-15 14:30:45.123Z
-Invalid parse: null
-2024-03-15T14:30:45.123Z -> 2024-03-15 14:30:45.123Z
-2024-03-15 14:30:45 -> 2024-03-15 14:30:45.000
-2024-03-15T14:30:45+02:00 -> 2024-03-15 12:30:45.000Z
-20240315T143045 -> null
-```
 
 ## DateTime Formatting
 
@@ -184,17 +154,6 @@ This example demonstrates various formatting approaches. The built-in methods
 provide standard formats, while custom formatting uses string interpolation  
 and padding for consistent output.  
 
-```
-$ dart run format_datetime.dart
-toString(): 2024-03-15 14:30:45.123456
-toIso8601String(): 2024-03-15T14:30:45.123456
-UTC toString(): 2024-03-15 14:30:45.123456Z
-UTC toIso8601String(): 2024-03-15T14:30:45.123456Z
-Custom format: 15/3/2024 14:30:45
-US format: 3/15/2024
-European format: 15.3.2024
-ISO date only: 2024-03-15
-```
 
 ## DateTime Arithmetic
 
@@ -237,18 +196,6 @@ DateTime arithmetic is performed using Duration objects. For month and year
 arithmetic, you need to manually construct new DateTime objects since  
 months have varying lengths.  
 
-```
-$ dart run datetime_arithmetic.dart
-Base date: 2024-03-15 12:00:00.000
-Plus 1 hour: 2024-03-15 13:00:00.000
-Plus 1 day: 2024-03-16 12:00:00.000
-Plus 1 week: 2024-03-22 12:00:00.000
-Plus 1 month: 2024-04-15 12:00:00.000
-Minus 2 hours: 2024-03-15 10:00:00.000
-Minus 5 days: 2024-03-10 12:00:00.000
-Minus 1 week: 2024-03-08 12:00:00.000
-Complex addition: 2024-03-17 15:30:45.000
-```
 
 ## DateTime Comparisons
 
@@ -300,22 +247,6 @@ DateTime comparisons work naturally with standard operators. The compareTo
 method returns -1 for earlier dates, 0 for equal dates, and 1 for later  
 dates, making it perfect for sorting operations.  
 
-```
-$ dart run datetime_comparisons.dart
-date1 == date2: false
-date1 == date3: true
-date1.isBefore(date2): true
-date2.isAfter(date1): true
-date1.isAtSameMomentAs(date3): true
-date1.compareTo(date2): -1
-Sorted dates:
-  2024-03-14
-  2024-03-15
-  2024-03-16
-  2024-03-17
-Earliest: 2024-03-14
-Latest: 2024-03-17
-```
 
 ## Duration Calculations
 
@@ -1439,59 +1370,6 @@ Extension methods provide a clean way to add domain-specific functionality
 to DateTime objects. These extensions cover common use cases like age  
 calculations, business logic, and convenient formatting operations.  
 
-```
-$ dart run datetime_extensions.dart
-Original date: 2024-03-15 14:30:45.000
-
-Age in years: 33
-Age in days: 12296
-Is adult: true
-
-=== Calendar Extensions ===
-Is today: false
-Is this year: true
-Is weekend: false
-Is leap year: true
-Days in month: 31
-
-=== Time of Day ===
-Is morning: false
-Is afternoon: true
-Is evening: false
-Is night: false
-Time of day: Afternoon
-
-=== Relative Time ===
-Yesterday: 1 days ago
-Next week: in 7 days
-
-=== Start/End Extensions ===
-Start of day: 2024-03-15 00:00:00.000
-End of day: 2024-03-15 23:59:59.999
-Start of week: 2024-03-11 14:30:45.000
-End of week: 2024-03-17 14:30:45.000
-Start of month: 2024-03-01 00:00:00.000
-End of month: 2024-03-31 23:59:59.999
-Start of year: 2024-01-01 00:00:00.000
-End of year: 2024-12-31 23:59:59.999
-
-=== Formatting Extensions ===
-Short date: 15/3/2024
-Long date: Friday, March 15, 2024
-Time string: 14:30
-Weekday name: Friday
-Month name: March
-
-=== Business Day Extensions ===
-Is business day: true
-Next business day: 18/3/2024
-Previous business day: 14/3/2024
-
-=== Rounding Extensions ===
-Round to hour: 2024-03-15 15:00:00.000
-Round to minute: 2024-03-15 14:37:00.000
-Truncate to day: 2024-03-15 00:00:00.000
-```
 
 ## Working with Multiple Time Zones
 
@@ -1656,47 +1534,6 @@ Basic timezone handling demonstrates international application requirements.
 While Dart's built-in support is limited, these patterns show how to implement  
 common timezone operations for global applications.  
 
-```
-$ dart run timezone_operations.dart
-Base UTC time: 2024-03-15 18:00:00.000Z
-
-=== World Clock ===
-UTC: 18:00 (15/3)
-EST: 13:00 (15/3)
-CST: 12:00 (15/3)
-MST: 11:00 (15/3)
-PST: 10:00 (15/3)
-GMT: 18:00 (15/3)
-CET: 19:00 (15/3)
-JST: 03:00 (16/3)
-AEST: 04:00 (16/3)
-
-=== Meeting Scheduler ===
-Meeting at 2024-03-15T14:00:00.000Z
-EST participant: 09:00 15/3/2024
-PST participant: 06:00 15/3/2024
-CET participant: 15:00 15/3/2024
-JST participant: 23:00 15/3/2024
-
-=== Business Hours Check ===
-Checking time: 2024-03-15T13:30:00.000Z
-New York: 08:30 15/3/2024 - CLOSED
-Los Angeles: 05:30 15/3/2024 - CLOSED
-London: 13:30 15/3/2024 - OPEN
-Tokyo: 22:30 15/3/2024 - CLOSED
-
-=== Time Zone Converter ===
-Source (Local): 2024-03-15 15:30:00.000
-In UTC: 2024-03-15 20:30:00.000Z
-In PST: 2024-03-15 12:30:00.000Z
-In JST: 2024-03-16 05:30:00.000Z
-
-=== Best Meeting Time Finder ===
-Best meeting time (UTC): 2024-03-15 16:00:00.000Z
-EST: 11:00 15/3/2024
-PST: 08:00 15/3/2024
-CET: 17:00 15/3/2024
-```
 
 ## Custom Date Formats and Localization
 
@@ -2050,55 +1887,6 @@ Custom formatting and localization support international users and business
 requirements. These examples show comprehensive patterns for formatting  
 dates according to different cultural preferences and business needs.  
 
-```
-$ dart run custom_date_formats.dart
-=== Custom Formats ===
-dd/MM/yyyy: 15/03/2024
-MM-dd-yyyy: 03-15-2024
-yyyy.MM.dd: 2024.03.15
-dd MMM yyyy: 15 Mar 2024
-MMMM dd, yyyy: March 15, 2024
-EEE, dd MMM: Fri, 15 Mar
-EEEE: Friday
-HH:mm:ss: 14:30:45
-hh:mm a: 02:30 PM
-
-=== Localized Formats ===
-en_US: Friday, March 15, 2024
-es_ES: viernes, marzo 15, 2024
-fr_FR: vendredi, mars 15, 2024
-de_DE: Freitag, März 15, 2024
-ja_JP: 2024年3月15日 (金曜日)
-
-=== Relative Dates ===
-2024-03-15 14:30: now
-2024-03-15 14:25: 5 minutes ago
-2024-03-15 12:30: 2 hours ago
-2024-03-14 14:30: 1 days ago
-2024-03-08 14:30: 1 weeks ago
-2024-03-15 15:00: in 30 minutes
-2024-03-18 14:30: in 3 days
-
-=== Cultural Preferences ===
-US: 3/15/2024
-UK: 15/3/2024
-ISO: 2024-03-15
-German: 15.3.2024
-Japanese: 2024年3月15日
-
-=== Business Formats ===
-Invoice Date: 15/03/2024
-Report period: 01/03/2024 - 31/03/2024
-Fiscal year: FY24
-Quarter: Q1 2024
-
-=== Parsing Custom Formats ===
-15/03/2024 -> 2024-03-15
-03-15-2024 -> 2024-03-15
-March 15, 2024 -> 2024-03-15
-2024.03.15 -> 2024-03-15
-15 Mar 2024 -> 2024-03-15
-```
 
 ## Performance and Memory Considerations
 
@@ -2393,44 +2181,9 @@ void demonstrateOptimizations() {
   print('With caching: ${fastTime}ms');
   print('Improvement: ${(slowTime / fastTime).toStringAsFixed(1)}x faster');
 }
-}
-}
 ```
 
 Date validation prevents errors and ensures data integrity. This comprehensive  
 example covers format validation, custom business rules, and range checking  
 commonly needed in real applications.  
 
-```
-$ dart run datetime_validation.dart
-=== Date Validation ===
-2024-03-15T14:30:45.123Z -> Valid
-2024-03-15 14:30:45 -> Valid
-2024-02-29 -> Valid
-2023-02-29 -> Invalid
-2024-13-15 -> Invalid
-2024-03-32 -> Invalid
-2024-03-15T25:30:45 -> Invalid
-invalid-date -> Invalid
- -> Invalid
-2024-03-15T14:30:45+25:00 -> Invalid
-
-=== Custom Validation ===
-2024-2-29: Valid date
-2023-2-29: Invalid day 29 for month 2
-2024-4-31: Invalid day 31 for month 4
-2024-12-31: Valid date
-2024-0-15: Invalid month: 0
-2024-3-0: Invalid day: 0
-
-=== Business Rule Validation ===
-2024-03-22: Future date not allowed
-2024-03-14: Valid business date
-1900-01-01: Valid business date
-2100-01-01: Date too far in future
-
-=== Range Validation ===
-2024-02-28: Out of range
-2024-03-10: In range
-2024-03-20: Out of range
-```
