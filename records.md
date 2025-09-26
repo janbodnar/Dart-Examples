@@ -582,28 +582,34 @@ typedef Event = ({
 String processEvent(Event event) {
   return switch (event) {
     // User events with specific patterns
-    (type: 'user_login', data: {'userId': String userId, 'platform': String platform}) =>
-      'User $userId logged in from $platform',
+    (type: 'user_login', data: var data, timestamp: _) 
+      when data.containsKey('userId') && data.containsKey('platform') =>
+      'User ${data['userId']} logged in from ${data['platform']}',
     
-    (type: 'user_logout', data: {'userId': String userId}) =>
-      'User $userId logged out',
+    (type: 'user_logout', data: var data, timestamp: _) 
+      when data.containsKey('userId') =>
+      'User ${data['userId']} logged out',
     
     // Order events with amount validation
-    (type: 'order_created', data: {'orderId': String id, 'amount': num amount}) 
-      when amount > 100 =>
-      'Large order created: $id (\$${amount.toStringAsFixed(2)})',
+    (type: 'order_created', data: var data, timestamp: _) 
+      when data.containsKey('orderId') && data.containsKey('amount') && (data['amount'] as num) > 100 =>
+      'Large order created: ${data['orderId']} (\$${(data['amount'] as num).toStringAsFixed(2)})',
     
-    (type: 'order_created', data: {'orderId': String id, 'amount': num amount}) =>
-      'Order created: $id (\$${amount.toStringAsFixed(2)})',
+    (type: 'order_created', data: var data, timestamp: _) 
+      when data.containsKey('orderId') && data.containsKey('amount') =>
+      'Order created: ${data['orderId']} (\$${(data['amount'] as num).toStringAsFixed(2)})',
     
     // System events with nested records
-    (type: 'system_alert', 
-     data: {'severity': String severity, 'details': Map details}) 
-      when severity == 'critical' =>
-      'CRITICAL ALERT: ${details['message'] ?? 'Unknown error'}',
+    (type: 'system_alert', data: var data, timestamp: _) 
+      when data.containsKey('severity') && data['severity'] == 'critical' =>
+      'CRITICAL ALERT: ${data.containsKey('details') ? (data['details'] as Map)['message'] ?? 'Unknown error' : 'Unknown error'}',
+    
+    // System events (non-critical)
+    (type: 'system_alert', data: var data, timestamp: _) =>
+      'System alert: ${data['severity'] ?? 'unknown severity'}',
     
     // Catch-all for unknown events
-    (type: String t, timestamp: DateTime ts) =>
+    (type: var t, timestamp: var ts, data: _) =>
       'Unknown event type: $t at ${ts.toIso8601String()}',
   };
 }
