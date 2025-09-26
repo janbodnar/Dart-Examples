@@ -363,9 +363,12 @@ void main() {
   final (
     personal: (name: empName, age: empAge),
     contact: (email: empEmail, phone: _),
-    address: (city: empCity, coordinates: (latitude: lat, longitude: lng)),
+    address: empAddress,
     department: dept
   ) = employee;
+  
+  // Extract coordinates separately
+  final (city: empCity, street: _, coordinates: (latitude: lat, longitude: lng)) = empAddress;
   
   print('Destructured: $empName ($empAge) from $empCity works in $dept');
   print('Located at: $lat, $lng');
