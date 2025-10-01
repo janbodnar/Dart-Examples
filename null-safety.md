@@ -443,61 +443,6 @@ and expressive way.
 
 
 
-## Late Variables
-
-The `late` modifier indicates that a non-nullable variable will be  
-initialized later, but before it's used. This is useful for expensive  
-initialization or circular dependencies.  
-
-```dart
-late String description;
-late int value;
-
-void initialize() {
-  description = 'Initialized later';
-  value = 42;
-}
-
-void main() {
-  // Must initialize before use
-  initialize();
-  print('Description: $description');
-  print('Value: $value');
-  
-  // Late with lazy initialization
-  late String expensive = computeExpensiveValue();
-  print('Before accessing expensive');
-  print('Expensive: $expensive'); // Computed here
-  
-  // Error case
-  try {
-    late String uninitialized;
-    print(uninitialized); // Error: not initialized
-  } catch (e) {
-    print('Error: ${e.runtimeType}');
-  }
-}
-
-String computeExpensiveValue() {
-  print('Computing expensive value...');
-  return 'Result';
-}
-```
-
-This example demonstrates late variables for deferred initialization,  
-lazy computation, and shows the runtime error when accessing uninitialized  
-late variables. Use late sparingly and ensure initialization before access.  
-
-```
-$ dart run late_variables.dart
-Description: Initialized later
-Value: 42
-Before accessing expensive
-Computing expensive value...
-Expensive: Result
-Error: LateInitializationError
-```
-
 ## Late Final Variables
 
 Combining `late` and `final` creates variables that must be initialized  
