@@ -185,13 +185,29 @@ This example shows proper use of null assertion after verification and
 demonstrates the runtime error that occurs when asserting null values.  
 Always prefer null-aware operators over null assertion when possible.  
 
+
+```dart
+void main() {
+  String word = randomWord()!;
+  print('Random word: $word');
+}
+
+String? randomWord() {
+  List<String?> words = ['apple', null, 'banana', 'cherry', null];
+  words.shuffle();
+  return words.first;
+}
 ```
-$ dart run null_assertion.dart
-Non-null: Hello there!
-Uppercase: FLUTTER
-Items: [apple, banana, cherry]
-Error: TypeError
-```
+
+This Dart code demonstrates how to work with nullable types and the null assertion operator 
+(`!`). It defines a function `randomWord()` that randomly selects the first item from a  
+shuffled list containing both strings and `null` values. In `main()`, the result is forcefully  
+unwrapped using `!`, assuming it's non-null, and printed. However, because the list includes  
+`null`, this can lead to a runtime error if `null` is selected. The example highlights the  
+risks of using `!` without proper null checks and underscores the importance of safe handling  
+when dealing with potentially nullable data.
+
+
 
 ## Null-aware Access Operator
 
