@@ -199,7 +199,7 @@ String? randomWord() {
 }
 ```
 
-This Dart code demonstrates how to work with nullable types and the null assertion operator 
+This Dart code demonstrates how to work with nullable types and the null assertion operator  
 (`!`). It defines a function `randomWord()` that randomly selects the first item from a  
 shuffled list containing both strings and `null` values. In `main()`, the result is forcefully  
 unwrapped using `!`, assuming it's non-null, and printed. However, because the list includes  
