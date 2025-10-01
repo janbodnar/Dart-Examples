@@ -1,19 +1,20 @@
 # Dart Functions
 
-Functions are fundamental building blocks in Dart programming. They encapsulate  
-reusable code, accept inputs through parameters, and can return values. Functions  
-are first-class citizens in Dart, meaning they can be assigned to variables,  
-passed as arguments, and returned from other functions.  
+Functions are fundamental building blocks in Dart programming. They  
+encapsulate reusable code, accept inputs through parameters, and can return  
+values. Functions are first-class citizens in Dart, meaning they can be  
+assigned to variables, passed as arguments, and returned from other functions.  
 
 Dart supports various function types including named functions, anonymous  
-functions, arrow functions, higher-order functions, and asynchronous functions.  
-Functions enable code organization, reusability, and abstraction, making programs  
-more maintainable and modular.  
+functions, arrow functions, higher-order functions, and asynchronous  
+functions. Functions enable code organization, reusability, and abstraction,  
+making programs more maintainable and modular.  
 
 ## Basic Function Definition
 
-A basic function defines a named block of code that can be executed repeatedly.  
-Functions can specify return types and parameters for type safety.  
+A basic function defines a named block of code that can be executed  
+repeatedly. Functions can specify return types and parameters for type  
+safety.  
 
 ```dart
 void main() {
@@ -102,14 +103,14 @@ int calculatePower(int base, int exponent) {
 }
 ```
 
-Required parameters enforce that callers provide all necessary inputs. Parameters  
-are accessed by position in the order they appear in the function signature,  
-ensuring clear function contracts.  
+Required parameters enforce that callers provide all necessary inputs.  
+Parameters are accessed by position in the order they appear in the  
+function signature, ensuring clear function contracts.  
 
 ## Optional Positional Parameters
 
-Optional positional parameters allow functions to have flexible signatures where  
-some parameters can be omitted when calling the function.  
+Optional positional parameters allow functions to have flexible signatures  
+where some parameters can be omitted when calling the function.  
 
 ```dart
 void main() {
@@ -161,7 +162,8 @@ void createUser({required String name, required int age, String? email}) {
   }
 }
 
-void displayBox({required int width, required int height, String color = 'red'}) {
+void displayBox({required int width, required int height, 
+    String color = 'red'}) {
   print('Box: ${width}x$height, Color: $color');
 }
 ```
@@ -265,14 +267,14 @@ void main() {
 }
 ```
 
-Anonymous functions don't have a name and are useful for short-lived operations.  
-They can capture variables from their surrounding scope and are commonly used  
-with collection methods like forEach, map, and where.  
+Anonymous functions don't have a name and are useful for short-lived  
+operations. They can capture variables from their surrounding scope and are  
+commonly used with collection methods like forEach, map, and where.  
 
 ## Function as Parameter
 
-Functions can be passed as parameters to other functions, enabling higher-order  
-programming patterns and callback mechanisms.  
+Functions can be passed as parameters to other functions, enabling  
+higher-order programming patterns and callback mechanisms.  
 
 ```dart
 void main() {
@@ -300,9 +302,9 @@ int double(int x) => x * 2;
 int square(int x) => x * x;
 ```
 
-Function types are declared using the Function keyword with parameter and return  
-types. This pattern enables strategy pattern implementations and customizable  
-behavior in reusable functions.  
+Function types are declared using the Function keyword with parameter and  
+return types. This pattern enables strategy pattern implementations and  
+customizable behavior in reusable functions.  
 
 ## Function Returning Function
 
@@ -333,8 +335,8 @@ int Function(int) createAdder(int addend) {
 }
 ```
 
-Functions that return functions create specialized versions of operations. This  
-pattern is useful for configuration, partial application, and building  
+Functions that return functions create specialized versions of operations.  
+This pattern is useful for configuration, partial application, and building  
 function pipelines with captured state.  
 
 ## Closures
