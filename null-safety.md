@@ -399,14 +399,49 @@ This example shows the four possible combinations of nullability with
 collections: nullable/non-nullable containers and nullable/non-nullable  
 elements, demonstrating safe operations on each.  
 
+
+The next Dart example demonstrates safe handling of nullable lists and nullable  
+elements within a list.  
+
+```dart
+void main() {
+  var nullableList = getNullableList(); // Could be null
+
+  // Safe operations
+  int? first = nullableList?.first;
+
+  print(first);
+
+  if (nullableList != null) {
+    int sum = nullableList.where((e) => e != null).fold(0, (a, b) => a + b!);
+    print('First: $first, Sum: $sum');
+  }
+}
+
+List<int?>? getNullableList() {
+  if (DateTime.now().second % 2 == 0) {
+    return null; // Return null half the time
+  } else if (DateTime.now().second % 3 == 0) {
+    return [1, 2, 3]; // Return a list half the time
+  } else {
+    return [1, null, 3, null, 5]; // Return a list with nulls
+  }
+}
 ```
-$ dart run null_safety_collections.dart
-Nullable list: null
-After assignment: [4, 5, 6]
-Mixed list: [1, null, 3, null, 5]
-Fully nullable: [a, null, b]
-First: 4, Sum: 9
-```
+
+The `getNullableList()` function returns a `List<int?>?`, which can be either  
+`null`, a list of non-null integers, or a list containing `null` values—based  
+on the current second of the system clock. In `main()`, the code safely  
+accesses the first element using the null-aware operator (`?.`) and prints it.  
+
+If the list itself is not `null`, it filters out any `null` entries and  
+calculates the sum of the remaining integers using `fold`. The use of `b!`  
+inside the fold ensures that each element is non-null at that point, thanks to  
+the preceding `where` filter. This example highlights Dart’s null safety  
+features and shows how to work with potentially nullable collections in a safe  
+and expressive way.  
+
+
 
 ## Late Variables
 
