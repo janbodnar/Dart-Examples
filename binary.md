@@ -1653,3 +1653,805 @@ security (preventing malicious files) and robustness (handling corrupt data).
 The example shows basic PNG validation, but real-world validation would  
 check additional structure like chunks and CRC checksums.  
 
+## Bitwise Operations and Bit Manipulation
+
+### Basic Bitwise Operations
+
+Bitwise operations manipulate individual bits, essential for low-level  
+programming, optimization, and implementing protocols and algorithms.  
+
+```dart
+void main() {
+  print('Basic bitwise operations:');
+  
+  var a = 0xAC; // 10101100
+  var b = 0x53; // 01010011
+  
+  print('a = 0x${a.toRadixString(16)} (${a.toRadixString(2).padLeft(8, '0')})');
+  print('b = 0x${b.toRadixString(16)} (${b.toRadixString(2).padLeft(8, '0')})');
+  
+  // AND - bits set in both operands
+  var andResult = a & b;
+  print('\nAND: 0x${andResult.toRadixString(16)} (${andResult.toRadixString(2).padLeft(8, '0')})');
+  
+  // OR - bits set in either operand
+  var orResult = a | b;
+  print('OR:  0x${orResult.toRadixString(16)} (${orResult.toRadixString(2).padLeft(8, '0')})');
+  
+  // XOR - bits set in one but not both
+  var xorResult = a ^ b;
+  print('XOR: 0x${xorResult.toRadixString(16)} (${xorResult.toRadixString(2).padLeft(8, '0')})');
+  
+  // NOT - inverts all bits (in 32-bit context)
+  var notResult = ~a & 0xFF; // Mask to 8 bits
+  print('NOT: 0x${notResult.toRadixString(16)} (${notResult.toRadixString(2).padLeft(8, '0')})');
+  
+  // Left shift - shift bits left, filling with zeros
+  var leftShift = (a << 2) & 0xFF;
+  print('\nLeft shift by 2:  0x${leftShift.toRadixString(16)} (${leftShift.toRadixString(2).padLeft(8, '0')})');
+  
+  // Right shift - shift bits right
+  var rightShift = a >> 2;
+  print('Right shift by 2: 0x${rightShift.toRadixString(16)} (${rightShift.toRadixString(2).padLeft(8, '0')})');
+  
+  // Practical example: flags
+  print('\nPractical example - permission flags:');
+  var READ = 1 << 0;    // 0001
+  var WRITE = 1 << 1;   // 0010
+  var EXECUTE = 1 << 2; // 0100
+  
+  var permissions = READ | WRITE; // User can read and write
+  print('Permissions: ${permissions.toRadixString(2).padLeft(4, '0')}');
+  print('Can read:    ${(permissions & READ) != 0}');
+  print('Can write:   ${(permissions & WRITE) != 0}');
+  print('Can execute: ${(permissions & EXECUTE) != 0}');
+}
+```
+
+This example demonstrates fundamental bitwise operations in Dart. These  
+operations work on the binary representation of integers, making them  
+extremely fast. AND is used for masking (extracting specific bits), OR  
+for combining flags, XOR for toggling and simple encryption, and shifts  
+for efficient multiplication/division by powers of 2.  
+
+The flags example shows a common use case: representing multiple boolean  
+states efficiently in a single integer. This technique is widely used in  
+file permissions, configuration options, and protocol headers.  
+
+### Bit Manipulation Functions and Utilities
+
+Common bit manipulation tasks can be encapsulated in reusable functions  
+for cleaner code and better maintainability.  
+
+```dart
+void main() {
+  print('Bit manipulation utilities:');
+  
+  var value = 0b10110100; // 180
+  print('Original value: ${value.toRadixString(2).padLeft(8, '0')} ($value)');
+  
+  // Set specific bit
+  var withBit1Set = setBit(value, 1);
+  print('Set bit 1:      ${withBit1Set.toRadixString(2).padLeft(8, '0')}');
+  
+  // Clear specific bit
+  var withBit5Clear = clearBit(value, 5);
+  print('Clear bit 5:    ${withBit5Clear.toRadixString(2).padLeft(8, '0')}');
+  
+  // Toggle specific bit
+  var withBit7Toggle = toggleBit(value, 7);
+  print('Toggle bit 7:   ${withBit7Toggle.toRadixString(2).padLeft(8, '0')}');
+  
+  // Test if bit is set
+  print('\nBit testing:');
+  for (var i = 0; i < 8; i++) {
+    print('Bit $i is ${isBitSet(value, i) ? 'SET' : 'CLEAR'}');
+  }
+  
+  // Get bit range
+  print('\nBit ranges:');
+  var bits2to5 = getBitRange(value, 2, 5);
+  print('Bits 2-5: ${bits2to5.toRadixString(2).padLeft(4, '0')} ($bits2to5)');
+  
+  // Set bit range
+  var withRangeSet = setBitRange(value, 0, 3, 0b1111);
+  print('Set bits 0-3 to 1111: ${withRangeSet.toRadixString(2).padLeft(8, '0')}');
+  
+  // Count bits
+  print('\nBit counting:');
+  print('Set bits in $value: ${countSetBits(value)}');
+  print('Leading zeros: ${countLeadingZeros(value, 8)}');
+  print('Trailing zeros: ${countTrailingZeros(value)}');
+}
+
+int setBit(int value, int bit) => value | (1 << bit);
+
+int clearBit(int value, int bit) => value & ~(1 << bit);
+
+int toggleBit(int value, int bit) => value ^ (1 << bit);
+
+bool isBitSet(int value, int bit) => (value & (1 << bit)) != 0;
+
+int getBitRange(int value, int start, int end) {
+  var mask = ((1 << (end - start + 1)) - 1);
+  return (value >> start) & mask;
+}
+
+int setBitRange(int value, int start, int end, int newValue) {
+  var mask = ((1 << (end - start + 1)) - 1) << start;
+  return (value & ~mask) | ((newValue << start) & mask);
+}
+
+int countSetBits(int value) {
+  var count = 0;
+  while (value != 0) {
+    count += value & 1;
+    value >>= 1;
+  }
+  return count;
+}
+
+int countLeadingZeros(int value, int bitWidth) {
+  if (value == 0) return bitWidth;
+  var count = 0;
+  var mask = 1 << (bitWidth - 1);
+  while ((value & mask) == 0) {
+    count++;
+    mask >>= 1;
+  }
+  return count;
+}
+
+int countTrailingZeros(int value) {
+  if (value == 0) return 32;
+  var count = 0;
+  while ((value & 1) == 0) {
+    count++;
+    value >>= 1;
+  }
+  return count;
+}
+```
+
+This example provides a library of common bit manipulation functions.  
+These utilities make bit-level operations more readable and maintainable.  
+Setting, clearing, and toggling bits are fundamental operations in flag  
+management and hardware control.  
+
+Bit range operations allow working with multi-bit fields within integers,  
+common in packed data structures and protocol headers. Bit counting functions  
+are used in various algorithms including checksums, compression, and  
+cryptography.  
+
+### Bit Fields and Packed Data Structures
+
+Packing multiple values into a single integer saves memory and is essential  
+for binary protocols and efficient data storage.  
+
+```dart
+void main() {
+  print('Packed data structures:');
+  
+  // Pack RGB color (8 bits per channel)
+  var red = 0xAB;
+  var green = 0xCD;
+  var blue = 0xEF;
+  
+  var packedColor = packRGB(red, green, blue);
+  print('Packed RGB: 0x${packedColor.toRadixString(16).toUpperCase().padLeft(6, '0')}');
+  
+  var unpacked = unpackRGB(packedColor);
+  print('Unpacked: R=0x${unpacked[0].toRadixString(16)}, '
+        'G=0x${unpacked[1].toRadixString(16)}, '
+        'B=0x${unpacked[2].toRadixString(16)}');
+  
+  // Pack date (5 bits day, 4 bits month, 7 bits year offset)
+  print('\nPacked date:');
+  var day = 15;
+  var month = 10;
+  var yearOffset = 23; // Years since 2000
+  
+  var packedDate = packDate(day, month, yearOffset);
+  print('Packed date: 0x${packedDate.toRadixString(16)} '
+        '(${packedDate.toRadixString(2).padLeft(16, '0')})');
+  
+  var dateFields = unpackDate(packedDate);
+  print('Unpacked: Day=${dateFields[0]}, Month=${dateFields[1]}, '
+        'Year=${2000 + dateFields[2]}');
+  
+  // Pack network packet header
+  print('\nNetwork packet header:');
+  var version = 4;    // 4 bits
+  var type = 2;       // 4 bits
+  var flags = 5;      // 8 bits
+  var length = 1024;  // 16 bits
+  
+  var header = packHeader(version, type, flags, length);
+  print('Packed header: 0x${header.toRadixString(16).toUpperCase()}');
+  
+  var headerFields = unpackHeader(header);
+  print('Unpacked: Version=${headerFields[0]}, Type=${headerFields[1]}, '
+        'Flags=${headerFields[2]}, Length=${headerFields[3]}');
+}
+
+int packRGB(int r, int g, int b) {
+  return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
+}
+
+List<int> unpackRGB(int packed) {
+  var r = (packed >> 16) & 0xFF;
+  var g = (packed >> 8) & 0xFF;
+  var b = packed & 0xFF;
+  return [r, g, b];
+}
+
+int packDate(int day, int month, int year) {
+  return ((year & 0x7F) << 9) | ((month & 0x0F) << 5) | (day & 0x1F);
+}
+
+List<int> unpackDate(int packed) {
+  var day = packed & 0x1F;
+  var month = (packed >> 5) & 0x0F;
+  var year = (packed >> 9) & 0x7F;
+  return [day, month, year];
+}
+
+int packHeader(int version, int type, int flags, int length) {
+  return ((version & 0x0F) << 28) | ((type & 0x0F) << 24) |
+         ((flags & 0xFF) << 16) | (length & 0xFFFF);
+}
+
+List<int> unpackHeader(int packed) {
+  var version = (packed >> 28) & 0x0F;
+  var type = (packed >> 24) & 0x0F;
+  var flags = (packed >> 16) & 0xFF;
+  var length = packed & 0xFFFF;
+  return [version, type, flags, length];
+}
+```
+
+This example demonstrates packing multiple values into single integers,  
+a technique called bit fields or packed data structures. This is memory-  
+efficient and commonly used in binary file formats, network protocols,  
+and hardware interfaces.  
+
+The RGB color packing shows a simple 24-bit color representation. Date  
+packing demonstrates fitting a date into 16 bits. The network packet  
+header shows how protocol headers often pack multiple fields into fixed-  
+width integers for efficient transmission and parsing.  
+
+### Bitwise Algorithms and Tricks
+
+Advanced bitwise techniques enable efficient solutions to common problems  
+without using traditional arithmetic or loops.  
+
+```dart
+void main() {
+  print('Bitwise algorithms and tricks:');
+  
+  // Check if power of 2
+  print('\nPower of 2 check:');
+  for (var n in [1, 2, 3, 4, 8, 15, 16, 31, 32]) {
+    print('$n is ${isPowerOfTwo(n) ? '' : 'not '}a power of 2');
+  }
+  
+  // Next power of 2
+  print('\nNext power of 2:');
+  for (var n in [5, 17, 33, 100]) {
+    print('Next power of 2 after $n: ${nextPowerOfTwo(n)}');
+  }
+  
+  // Swap without temporary variable
+  print('\nSwap using XOR:');
+  var x = 42;
+  var y = 17;
+  print('Before: x=$x, y=$y');
+  var result = swapXOR(x, y);
+  print('After:  x=${result[0]}, y=${result[1]}');
+  
+  // Reverse bits
+  print('\nReverse bits:');
+  var value = 0b10110100;
+  print('Original: ${value.toRadixString(2).padLeft(8, '0')}');
+  var reversed = reverseBits8(value);
+  print('Reversed: ${reversed.toRadixString(2).padLeft(8, '0')}');
+  
+  // Parity (even/odd number of set bits)
+  print('\nParity check:');
+  for (var n in [0b1010, 0b1011, 0b1111]) {
+    var bits = n.toRadixString(2).padLeft(8, '0');
+    print('$bits has ${parity(n) ? 'odd' : 'even'} parity');
+  }
+  
+  // Absolute value without branching
+  print('\nAbsolute value (branchless):');
+  for (var n in [-5, -1, 0, 1, 5]) {
+    print('abs($n) = ${absoluteValue(n)}');
+  }
+}
+
+bool isPowerOfTwo(int n) {
+  return n > 0 && (n & (n - 1)) == 0;
+}
+
+int nextPowerOfTwo(int n) {
+  n--;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  return n + 1;
+}
+
+List<int> swapXOR(int a, int b) {
+  a = a ^ b;
+  b = a ^ b;
+  a = a ^ b;
+  return [a, b];
+}
+
+int reverseBits8(int n) {
+  var result = 0;
+  for (var i = 0; i < 8; i++) {
+    result = (result << 1) | (n & 1);
+    n >>= 1;
+  }
+  return result;
+}
+
+bool parity(int n) {
+  var count = 0;
+  while (n != 0) {
+    count ^= n & 1;
+    n >>= 1;
+  }
+  return count == 1;
+}
+
+int absoluteValue(int n) {
+  var mask = n >> 31;
+  return (n ^ mask) - mask;
+}
+```
+
+This example showcases clever bitwise algorithms that are both efficient  
+and elegant. Checking if a number is a power of 2 uses the property that  
+powers of 2 have exactly one bit set, making (n & (n-1)) equal to zero.  
+
+The XOR swap is a classic trick that swaps values without a temporary  
+variable. Bit reversal is useful in FFT algorithms and graphics. The  
+branchless absolute value avoids conditional jumps, which can be faster  
+on modern CPUs with deep pipelines.  
+
+### Bit Vectors and Sets
+
+Bit vectors efficiently represent sets of integers, useful for flags,  
+presence tracking, and implementing compact data structures.  
+
+```dart
+import 'dart:typed_data';
+
+void main() {
+  print('Bit vector implementation:');
+  
+  var bitSet = BitSet(100);
+  
+  // Add elements
+  bitSet.add(5);
+  bitSet.add(10);
+  bitSet.add(15);
+  bitSet.add(50);
+  bitSet.add(99);
+  
+  print('Added elements: 5, 10, 15, 50, 99');
+  
+  // Check membership
+  print('\nMembership tests:');
+  for (var n in [5, 7, 15, 50, 100]) {
+    print('Contains $n: ${bitSet.contains(n)}');
+  }
+  
+  // Remove element
+  bitSet.remove(10);
+  print('\nAfter removing 10:');
+  print('Contains 10: ${bitSet.contains(10)}');
+  
+  // Count elements
+  print('Total elements: ${bitSet.cardinality()}');
+  
+  // Set operations
+  print('\nSet operations:');
+  var setA = BitSet(20);
+  var setB = BitSet(20);
+  
+  setA.addRange([1, 2, 3, 5, 8]);
+  setB.addRange([2, 3, 4, 5, 6]);
+  
+  print('Set A: ${setA.toList()}');
+  print('Set B: ${setB.toList()}');
+  
+  var union = setA.union(setB);
+  print('Union: ${union.toList()}');
+  
+  var intersection = setA.intersection(setB);
+  print('Intersection: ${intersection.toList()}');
+  
+  var difference = setA.difference(setB);
+  print('Difference (A-B): ${difference.toList()}');
+}
+
+class BitSet {
+  final Uint32List _bits;
+  final int _size;
+  
+  BitSet(int size)
+      : _size = size,
+        _bits = Uint32List((size + 31) ~/ 32);
+  
+  void add(int n) {
+    if (n < 0 || n >= _size) return;
+    var index = n ~/ 32;
+    var bit = n % 32;
+    _bits[index] |= (1 << bit);
+  }
+  
+  void addRange(List<int> numbers) {
+    for (var n in numbers) {
+      add(n);
+    }
+  }
+  
+  bool contains(int n) {
+    if (n < 0 || n >= _size) return false;
+    var index = n ~/ 32;
+    var bit = n % 32;
+    return (_bits[index] & (1 << bit)) != 0;
+  }
+  
+  void remove(int n) {
+    if (n < 0 || n >= _size) return;
+    var index = n ~/ 32;
+    var bit = n % 32;
+    _bits[index] &= ~(1 << bit);
+  }
+  
+  int cardinality() {
+    var count = 0;
+    for (var word in _bits) {
+      var w = word;
+      while (w != 0) {
+        count += w & 1;
+        w >>= 1;
+      }
+    }
+    return count;
+  }
+  
+  List<int> toList() {
+    var result = <int>[];
+    for (var i = 0; i < _size; i++) {
+      if (contains(i)) result.add(i);
+    }
+    return result;
+  }
+  
+  BitSet union(BitSet other) {
+    var result = BitSet(_size);
+    for (var i = 0; i < _bits.length; i++) {
+      result._bits[i] = _bits[i] | other._bits[i];
+    }
+    return result;
+  }
+  
+  BitSet intersection(BitSet other) {
+    var result = BitSet(_size);
+    for (var i = 0; i < _bits.length; i++) {
+      result._bits[i] = _bits[i] & other._bits[i];
+    }
+    return result;
+  }
+  
+  BitSet difference(BitSet other) {
+    var result = BitSet(_size);
+    for (var i = 0; i < _bits.length; i++) {
+      result._bits[i] = _bits[i] & ~other._bits[i];
+    }
+    return result;
+  }
+}
+```
+
+This example implements a bit vector (bit set) data structure that efficiently  
+stores sets of integers. Each integer is represented by a single bit, making  
+this extremely memory-efficient for dense sets or when the universe of  
+possible values is relatively small.  
+
+Bit sets support standard set operations (union, intersection, difference)  
+using bitwise operations, making them very fast. This data structure is  
+commonly used in compilers, databases, and algorithms that need to track  
+presence or absence of items efficiently.  
+
+### Advanced Bit Manipulation Patterns
+
+Complex bit manipulation patterns solve sophisticated problems in  
+compression, error detection, and cryptography.  
+
+```dart
+import 'dart:typed_data';
+
+void main() {
+  // Gray code conversion
+  print('Gray code:');
+  print('Binary -> Gray -> Binary');
+  for (var i = 0; i < 8; i++) {
+    var gray = binaryToGray(i);
+    var binary = grayToBinary(gray);
+    print('${i.toRadixString(2).padLeft(3, '0')} -> '
+          '${gray.toRadixString(2).padLeft(3, '0')} -> '
+          '${binary.toRadixString(2).padLeft(3, '0')}');
+  }
+  
+  // Hamming weight (population count) variations
+  print('\nHamming weight algorithms:');
+  var testValues = [0xFF, 0xAA, 0x55, 0x0F];
+  for (var val in testValues) {
+    var naive = hammingWeightNaive(val);
+    var kernighan = hammingWeightKernighan(val);
+    var parallel = hammingWeightParallel(val);
+    print('0x${val.toRadixString(16).padLeft(2, '0')}: '
+          'naive=$naive, kernighan=$kernighan, parallel=$parallel');
+  }
+  
+  // Morton code (Z-order curve)
+  print('\nMorton code (2D -> 1D):');
+  var coordinates = [[0, 0], [1, 0], [0, 1], [1, 1], [2, 3]];
+  for (var coord in coordinates) {
+    var morton = mortonEncode(coord[0], coord[1]);
+    var decoded = mortonDecode(morton);
+    print('(${coord[0]}, ${coord[1]}) -> $morton -> '
+          '(${decoded[0]}, ${decoded[1]})');
+  }
+  
+  // Bit rotation
+  print('\nBit rotation:');
+  var value = 0b10110100;
+  print('Original:      ${value.toRadixString(2).padLeft(8, '0')}');
+  print('Rotate left 3: ${rotateLeft8(value, 3).toRadixString(2).padLeft(8, '0')}');
+  print('Rotate right 3: ${rotateRight8(value, 3).toRadixString(2).padLeft(8, '0')}');
+}
+
+int binaryToGray(int binary) => binary ^ (binary >> 1);
+
+int grayToBinary(int gray) {
+  var binary = gray;
+  while (gray >>= 1) {
+    binary ^= gray;
+  }
+  return binary;
+}
+
+int hammingWeightNaive(int n) {
+  var count = 0;
+  for (var i = 0; i < 8; i++) {
+    if ((n & (1 << i)) != 0) count++;
+  }
+  return count;
+}
+
+int hammingWeightKernighan(int n) {
+  var count = 0;
+  while (n != 0) {
+    n &= n - 1; // Clear lowest set bit
+    count++;
+  }
+  return count;
+}
+
+int hammingWeightParallel(int n) {
+  // Parallel bit counting algorithm
+  n = n - ((n >> 1) & 0x55);
+  n = (n & 0x33) + ((n >> 2) & 0x33);
+  n = (n + (n >> 4)) & 0x0F;
+  return n;
+}
+
+int mortonEncode(int x, int y) {
+  var result = 0;
+  for (var i = 0; i < 16; i++) {
+    result |= ((x & (1 << i)) << i) | ((y & (1 << i)) << (i + 1));
+  }
+  return result;
+}
+
+List<int> mortonDecode(int morton) {
+  var x = 0;
+  var y = 0;
+  for (var i = 0; i < 16; i++) {
+    x |= ((morton & (1 << (2 * i))) >> i);
+    y |= ((morton & (1 << (2 * i + 1))) >> (i + 1));
+  }
+  return [x, y];
+}
+
+int rotateLeft8(int value, int count) {
+  count %= 8;
+  return ((value << count) | (value >> (8 - count))) & 0xFF;
+}
+
+int rotateRight8(int value, int count) {
+  count %= 8;
+  return ((value >> count) | (value << (8 - count))) & 0xFF;
+}
+```
+
+This example demonstrates advanced bit manipulation patterns. Gray code  
+is useful in error correction and analog-to-digital conversion as adjacent  
+values differ by only one bit. Hamming weight (population count) has multiple  
+algorithms with different trade-offs between simplicity and speed.  
+
+Morton codes map multi-dimensional coordinates to one dimension while  
+preserving locality, useful in spatial indexing and quad-trees. Bit rotation  
+is used in cryptography and hash functions. These patterns showcase the  
+power of bitwise operations for solving complex problems efficiently.  
+
+## Encoding and Decoding
+
+### Base64 Encoding and Decoding
+
+Base64 encoding converts binary data to ASCII text, making it safe for  
+transmission over text-based protocols and storage in text files.  
+
+```dart
+import 'dart:convert';
+import 'dart:typed_data';
+
+void main() {
+  print('Base64 Encoding and Decoding:');
+  
+  // Original data
+  var data = Uint8List.fromList(
+    'Hello there! This is a test message for Base64 encoding.'.codeUnits
+  );
+  print('Original data: ${String.fromCharCodes(data)}');
+  print('Original bytes: $data');
+  print('Length: ${data.length} bytes');
+  
+  // Standard Base64 encoding
+  print('\n1. Standard Base64:');
+  var encoded = base64.encode(data);
+  print('Encoded: $encoded');
+  print('Encoded length: ${encoded.length} characters');
+  
+  // Decode back
+  var decoded = base64.decode(encoded);
+  print('Decoded: ${String.fromCharCodes(decoded)}');
+  print('Data integrity: ${String.fromCharCodes(data) == String.fromCharCodes(decoded)}');
+  
+  // URL-safe Base64 encoding
+  print('\n2. URL-safe Base64:');
+  var urlEncoded = base64Url.encode(data);
+  print('URL encoded: $urlEncoded');
+  
+  var urlDecoded = base64Url.decode(urlEncoded);
+  print('URL decoded: ${String.fromCharCodes(urlDecoded)}');
+  
+  // Binary data encoding
+  print('\n3. Binary data:');
+  var binaryData = Uint8List.fromList([0xFF, 0x00, 0xAB, 0xCD, 0x12, 0x34]);
+  var binaryEncoded = base64.encode(binaryData);
+  print('Binary data: $binaryData');
+  print('Encoded: $binaryEncoded');
+  
+  var binaryDecoded = base64.decode(binaryEncoded);
+  print('Decoded: $binaryDecoded');
+  
+  // Efficiency comparison
+  print('\n4. Encoding efficiency:');
+  var testData = Uint8List(1000);
+  for (var i = 0; i < testData.length; i++) {
+    testData[i] = i & 0xFF;
+  }
+  
+  var encodedTest = base64.encode(testData);
+  var overhead = ((encodedTest.length - testData.length) / testData.length * 100);
+  print('Original size: ${testData.length} bytes');
+  print('Encoded size: ${encodedTest.length} characters');
+  print('Overhead: ${overhead.toStringAsFixed(1)}%');
+}
+```
+
+This example demonstrates Base64 encoding using Dart's built-in convert  
+library. Base64 is widely used for embedding binary data in JSON, XML,  
+email, and URLs. The standard encoding uses characters A-Z, a-z, 0-9, +,  
+and /, while URL-safe encoding replaces + and / with - and _.  
+
+Base64 encoding increases data size by approximately 33% due to converting  
+6-bit chunks to 8-bit characters. Despite this overhead, it's essential  
+for protocols that only support text or have restrictions on certain bytes.  
+
+### Hexadecimal Encoding and Decoding
+
+Hexadecimal encoding represents bytes as readable hex strings, useful for  
+debugging, displaying binary data, and working with low-level formats.  
+
+```dart
+import 'dart:typed_data';
+
+void main() {
+  print('Hexadecimal Encoding and Decoding:');
+  
+  // Encode to hex
+  var data = Uint8List.fromList('Hello there!'.codeUnits);
+  print('Original: ${String.fromCharCodes(data)}');
+  
+  var hexString = bytesToHex(data);
+  print('Hex encoding: $hexString');
+  
+  // Decode from hex
+  var decoded = hexToBytes(hexString);
+  print('Decoded: ${String.fromCharCodes(decoded)}');
+  
+  // Binary data
+  print('\nBinary data encoding:');
+  var binaryData = Uint8List.fromList([0x00, 0xFF, 0xAB, 0xCD, 0x12, 0x34]);
+  print('Binary data: $binaryData');
+  print('Hex: ${bytesToHex(binaryData)}');
+  
+  // Formatted hex dump
+  print('\nHex dump format:');
+  var largeData = Uint8List(48);
+  for (var i = 0; i < largeData.length; i++) {
+    largeData[i] = i;
+  }
+  
+  hexDump(largeData);
+  
+  // Uppercase vs lowercase
+  print('\nCase variations:');
+  var testData = Uint8List.fromList([0xAB, 0xCD, 0xEF]);
+  print('Lowercase: ${bytesToHex(testData)}');
+  print('Uppercase: ${bytesToHex(testData, uppercase: true)}');
+}
+
+String bytesToHex(Uint8List bytes, {bool uppercase = false}) {
+  var hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
+  return uppercase ? hex.toUpperCase() : hex;
+}
+
+Uint8List hexToBytes(String hex) {
+  var bytes = <int>[];
+  for (var i = 0; i < hex.length; i += 2) {
+    var byteStr = hex.substring(i, i + 2);
+    bytes.add(int.parse(byteStr, radix: 16));
+  }
+  return Uint8List.fromList(bytes);
+}
+
+void hexDump(Uint8List data, {int bytesPerLine = 16}) {
+  for (var offset = 0; offset < data.length; offset += bytesPerLine) {
+    var end = (offset + bytesPerLine < data.length)
+        ? offset + bytesPerLine
+        : data.length;
+    
+    var line = data.sublist(offset, end);
+    var hexPart = line.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
+    var asciiPart = line.map((b) => (b >= 32 && b <= 126) 
+        ? String.fromCharCode(b) 
+        : '.').join('');
+    
+    print('${offset.toRadixString(16).padLeft(4, '0')}: '
+          '${hexPart.padRight(bytesPerLine * 3 - 1)} |$asciiPart|');
+  }
+}
+```
+
+This example demonstrates hexadecimal encoding, which is widely used for  
+displaying binary data in a human-readable format. Each byte is represented  
+by two hex digits (0-9, A-F), making it easy to see exact byte values.  
+
+The hex dump format is particularly useful for debugging binary files and  
+network protocols. It shows both hex values and ASCII representation,  
+making it easy to spot text strings within binary data. This format is  
+similar to tools like hexdump and xxd.  
+
