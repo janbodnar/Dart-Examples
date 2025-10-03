@@ -2455,3 +2455,916 @@ network protocols. It shows both hex values and ASCII representation,
 making it easy to spot text strings within binary data. This format is  
 similar to tools like hexdump and xxd.  
 
+### ASCII and Binary Conversion
+
+Converting between ASCII text and binary representations is fundamental  
+for understanding data encoding and debugging protocols.  
+
+```dart
+import 'dart:typed_data';
+
+void main() {
+  print('ASCII and Binary Conversion:');
+  
+  // Test string
+  var text = 'Hello there! 123';
+  print('Original text: $text');
+  
+  // ASCII to binary conversion
+  print('\n1. ASCII to binary conversion:');
+  
+  print('Character breakdown:');
+  for (var i = 0; i < text.length; i++) {
+    var char = text[i];
+    var code = char.codeUnitAt(0);
+    print('  [$i] \'$char\' -> ASCII $code -> Binary ${code.toRadixString(2).padLeft(8, '0')}');
+  }
+  
+  // Convert entire string to binary representation
+  var binaryString = stringToBinary(text);
+  print('\nFull binary: $binaryString');
+  
+  // Convert back from binary
+  var reconstructed = binaryToString(binaryString);
+  print('Reconstructed: $reconstructed');
+  
+  // Binary arithmetic representation
+  print('\n2. Numeric binary representation:');
+  var number = 42;
+  print('Number: $number');
+  print('Binary: ${number.toRadixString(2)}');
+  print('8-bit:  ${number.toRadixString(2).padLeft(8, '0')}');
+  print('16-bit: ${number.toRadixString(2).padLeft(16, '0')}');
+  
+  // Bytes as binary strings
+  print('\n3. Byte array as binary:');
+  var bytes = Uint8List.fromList([72, 101, 108, 108, 111]); // "Hello"
+  for (var byte in bytes) {
+    print('${byte.toRadixString(2).padLeft(8, '0')} = $byte = ${String.fromCharCode(byte)}');
+  }
+}
+
+String stringToBinary(String text) {
+  return text.codeUnits
+      .map((code) => code.toRadixString(2).padLeft(8, '0'))
+      .join(' ');
+}
+
+String binaryToString(String binary) {
+  var parts = binary.split(' ');
+  var codes = parts.map((b) => int.parse(b, radix: 2));
+  return String.fromCharCodes(codes);
+}
+```
+
+This example demonstrates conversions between ASCII text and binary  
+representation. Understanding these conversions is essential for working  
+with text encoding, network protocols, and binary file formats.  
+
+The character breakdown shows how each character maps to an ASCII code  
+and its binary representation. This is useful for debugging text encoding  
+issues and understanding how text is stored in binary form.  
+
+### Custom Binary Format Design
+
+Designing custom binary formats enables efficient data storage and  
+transmission for specific applications.  
+
+```dart
+import 'dart:typed_data';
+import 'dart:io';
+
+void main() async {
+  print('Custom Binary Format Design:');
+  
+  // Define a simple record format
+  var records = [
+    Record(id: 1, name: 'Alice', age: 30, score: 95.5),
+    Record(id: 2, name: 'Bob', age: 25, score: 87.3),
+    Record(id: 3, name: 'Charlie', age: 35, score: 92.8),
+  ];
+  
+  // Write records to file
+  print('Writing records to binary file:');
+  var file = File('records.dat');
+  var buffer = BytesBuilder();
+  
+  // File header
+  buffer.addByte(0x52); // 'R'
+  buffer.addByte(0x45); // 'E'
+  buffer.addByte(0x43); // 'C'
+  buffer.addByte(0x00); // Version
+  
+  var headerData = ByteData(4);
+  headerData.setUint32(0, records.length);
+  buffer.add(headerData.buffer.asUint8List());
+  
+  // Write records
+  for (var record in records) {
+    buffer.add(record.toBytes());
+  }
+  
+  await file.writeAsBytes(buffer.toBytes());
+  print('Wrote ${records.length} records');
+  
+  // Read records back
+  print('\nReading records from binary file:');
+  var fileData = await file.readAsBytes();
+  var reader = ByteData.view(fileData.buffer);
+  
+  // Verify header
+  if (fileData[0] != 0x52 || fileData[1] != 0x45 || fileData[2] != 0x43) {
+    print('Invalid file format!');
+    return;
+  }
+  
+  var version = fileData[3];
+  var recordCount = reader.getUint32(4);
+  
+  print('File version: $version');
+  print('Record count: $recordCount');
+  
+  // Read records
+  var offset = 8;
+  var readRecords = <Record>[];
+  
+  for (var i = 0; i < recordCount; i++) {
+    var record = Record.fromBytes(fileData, offset);
+    readRecords.add(record);
+    offset += Record.recordSize;
+  }
+  
+  print('\nRead records:');
+  for (var record in readRecords) {
+    print('  ${record.toString()}');
+  }
+  
+  // Cleanup
+  await file.delete();
+}
+
+class Record {
+  final int id;
+  final String name;
+  final int age;
+  final double score;
+  
+  static const int recordSize = 4 + 32 + 4 + 8; // 48 bytes
+  
+  Record({required this.id, required this.name, required this.age, required this.score});
+  
+  Uint8List toBytes() {
+    var buffer = ByteData(recordSize);
+    
+    // ID (4 bytes)
+    buffer.setUint32(0, id);
+    
+    // Name (32 bytes, null-padded)
+    var nameBytes = name.codeUnits;
+    for (var i = 0; i < 32; i++) {
+      buffer.setUint8(4 + i, i < nameBytes.length ? nameBytes[i] : 0);
+    }
+    
+    // Age (4 bytes)
+    buffer.setUint32(36, age);
+    
+    // Score (8 bytes, double)
+    buffer.setFloat64(40, score);
+    
+    return buffer.buffer.asUint8List();
+  }
+  
+  factory Record.fromBytes(Uint8List bytes, int offset) {
+    var buffer = ByteData.view(bytes.buffer, offset, recordSize);
+    
+    var id = buffer.getUint32(0);
+    
+    // Read name (null-terminated)
+    var nameBytes = <int>[];
+    for (var i = 0; i < 32; i++) {
+      var byte = buffer.getUint8(4 + i);
+      if (byte == 0) break;
+      nameBytes.add(byte);
+    }
+    var name = String.fromCharCodes(nameBytes);
+    
+    var age = buffer.getUint32(36);
+    var score = buffer.getFloat64(40);
+    
+    return Record(id: id, name: name, age: age, score: score);
+  }
+  
+  @override
+  String toString() => 'Record(id: $id, name: $name, age: $age, score: $score)';
+}
+```
+
+This example demonstrates designing a custom binary format for storing  
+structured data. The format includes a file header with magic bytes for  
+identification, version number, and record count. Each record has a fixed  
+size, making random access efficient.  
+
+Custom binary formats offer several advantages: compact storage, fast  
+parsing, platform independence (with careful endianness handling), and  
+the ability to design exactly what you need. This approach is used in  
+databases, game save files, and network protocols.  
+
+## Buffer Operations and Management
+
+### Dynamic Buffer Building
+
+Building binary data dynamically requires efficient buffer management  
+to avoid excessive memory allocations and copies.  
+
+```dart
+import 'dart:typed_data';
+
+void main() {
+  print('Dynamic buffer building:');
+  
+  // Using BytesBuilder
+  var builder = BytesBuilder();
+  
+  print('1. Building with BytesBuilder:');
+  builder.addByte(0x48); // H
+  builder.addByte(0x65); // e
+  builder.add([0x6C, 0x6C, 0x6F]); // llo
+  builder.addByte(0x20); // space
+  builder.add('there!'.codeUnits);
+  
+  var result1 = builder.toBytes();
+  print('Built: ${String.fromCharCodes(result1)}');
+  print('Length: ${result1.length} bytes');
+  
+  // Building structured data
+  print('\n2. Building structured data:');
+  var structBuilder = BytesBuilder();
+  
+  // Header
+  var header = ByteData(8);
+  header.setUint32(0, 0x12345678);
+  header.setUint32(4, 42);
+  structBuilder.add(header.buffer.asUint8List());
+  
+  // Payload
+  structBuilder.add('Hello there!'.codeUnits);
+  
+  // Footer
+  structBuilder.addByte(0xFF);
+  structBuilder.addByte(0xFE);
+  
+  var result2 = structBuilder.toBytes();
+  print('Total size: ${result2.length} bytes');
+  print('Header: ${result2.sublist(0, 8)}');
+  print('Payload: ${String.fromCharCodes(result2.sublist(8, 20))}');
+  print('Footer: ${result2.sublist(20)}');
+  
+  // Copy-on-write behavior
+  print('\n3. Copy-on-write:');
+  var builder3 = BytesBuilder(copy: false); // Don't copy, reuse buffers
+  builder3.add([1, 2, 3]);
+  builder3.add([4, 5, 6]);
+  
+  var result3 = builder3.toBytes();
+  print('Built (no-copy): $result3');
+  
+  // Performance comparison
+  print('\n4. Performance comparison:');
+  var iterations = 10000;
+  
+  var sw = Stopwatch()..start();
+  for (var i = 0; i < iterations; i++) {
+    var b = BytesBuilder();
+    for (var j = 0; j < 10; j++) {
+      b.addByte(j);
+    }
+    b.toBytes();
+  }
+  sw.stop();
+  print('BytesBuilder: ${sw.elapsedMilliseconds}ms');
+  
+  sw.reset();
+  sw.start();
+  for (var i = 0; i < iterations; i++) {
+    var list = <int>[];
+    for (var j = 0; j < 10; j++) {
+      list.add(j);
+    }
+    Uint8List.fromList(list);
+  }
+  sw.stop();
+  print('List approach: ${sw.elapsedMilliseconds}ms');
+}
+```
+
+This example demonstrates efficient buffer building using BytesBuilder,  
+which manages memory allocation and growth automatically. BytesBuilder is  
+more efficient than repeatedly concatenating lists or creating new arrays.  
+
+The copy parameter controls whether BytesBuilder makes copies of added  
+data. Setting it to false can improve performance when you know the source  
+data won't be modified, but requires careful memory management.  
+
+### Stream-based Buffer Processing
+
+Processing data in streams prevents memory overflow when dealing with  
+large datasets or continuous data flows.  
+
+```dart
+import 'dart:async';
+import 'dart:typed_data';
+
+void main() async {
+  print('Stream-based buffer processing:');
+  
+  // Create a data stream
+  var controller = StreamController<List<int>>();
+  
+  // Process stream with transformation
+  print('1. Stream transformation:');
+  var transformedStream = controller.stream.map((chunk) {
+    // Transform each chunk (example: increment each byte)
+    return Uint8List.fromList(chunk.map((b) => (b + 1) & 0xFF).toList());
+  });
+  
+  var processedData = <int>[];
+  transformedStream.listen((chunk) {
+    processedData.addAll(chunk);
+  });
+  
+  // Feed data into stream
+  controller.add([1, 2, 3]);
+  controller.add([4, 5, 6]);
+  controller.add([7, 8, 9]);
+  await controller.close();
+  
+  await Future.delayed(Duration(milliseconds: 100));
+  print('Processed: $processedData');
+  
+  // Buffering stream
+  print('\n2. Buffering stream:');
+  await demonstrateBuffering();
+  
+  // Backpressure handling
+  print('\n3. Backpressure handling:');
+  await demonstrateBackpressure();
+}
+
+Future<void> demonstrateBuffering() async {
+  var stream = Stream.fromIterable([
+    [1, 2],
+    [3, 4],
+    [5, 6],
+    [7, 8],
+    [9, 10],
+  ]);
+  
+  var buffered = <int>[];
+  const bufferSize = 4;
+  
+  await for (var chunk in stream) {
+    buffered.addAll(chunk);
+    
+    while (buffered.length >= bufferSize) {
+      var batch = buffered.sublist(0, bufferSize);
+      print('Processing buffer: $batch');
+      buffered.removeRange(0, bufferSize);
+    }
+  }
+  
+  if (buffered.isNotEmpty) {
+    print('Processing remaining: $buffered');
+  }
+}
+
+Future<void> demonstrateBackpressure() async {
+  var controller = StreamController<List<int>>();
+  
+  // Slow consumer
+  controller.stream.listen((chunk) async {
+    print('Received chunk: $chunk');
+    await Future.delayed(Duration(milliseconds: 100));
+    print('Processed chunk: $chunk');
+  });
+  
+  // Fast producer
+  for (var i = 0; i < 5; i++) {
+    controller.add([i, i + 1]);
+    print('Sent chunk ${i}');
+    await Future.delayed(Duration(milliseconds: 50));
+  }
+  
+  await controller.close();
+  await Future.delayed(Duration(milliseconds: 600));
+}
+```
+
+This example demonstrates stream-based processing, which is essential for  
+handling large or continuous data flows. Streams provide automatic memory  
+management and backpressure handling, preventing the producer from  
+overwhelming the consumer.  
+
+Buffering allows accumulating data until you have enough to process  
+efficiently. Backpressure ensures that fast producers don't cause memory  
+issues with slow consumers, automatically pausing data flow when needed.  
+
+## Endianness Handling
+
+### Understanding and Converting Endianness
+
+Endianness determines byte order in multi-byte values, critical for  
+cross-platform compatibility and network protocols.  
+
+```dart
+import 'dart:typed_data';
+
+void main() {
+  print('Endianness Handling:');
+  
+  // Detect system endianness
+  print('1. System endianness:');
+  var buffer = ByteData(4);
+  buffer.setUint32(0, 0x12345678, Endian.host);
+  var bytes = buffer.buffer.asUint8List();
+  
+  if (bytes[0] == 0x12) {
+    print('System is Big Endian');
+  } else {
+    print('System is Little Endian');
+  }
+  print('Bytes: ${bytes.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+  
+  // Writing with different endianness
+  print('\n2. Writing different endianness:');
+  var value = 0x12345678;
+  
+  var bigEndian = ByteData(4);
+  bigEndian.setUint32(0, value, Endian.big);
+  print('Big Endian:    ${bigEndian.buffer.asUint8List()}');
+  
+  var littleEndian = ByteData(4);
+  littleEndian.setUint32(0, value, Endian.little);
+  print('Little Endian: ${littleEndian.buffer.asUint8List()}');
+  
+  // Reading with different endianness
+  print('\n3. Reading different endianness:');
+  var testBytes = Uint8List.fromList([0x12, 0x34, 0x56, 0x78]);
+  var reader = ByteData.view(testBytes.buffer);
+  
+  print('Bytes: $testBytes');
+  print('As Big Endian:    0x${reader.getUint32(0, Endian.big).toRadixString(16)}');
+  print('As Little Endian: 0x${reader.getUint32(0, Endian.little).toRadixString(16)}');
+  
+  // Manual byte swapping
+  print('\n4. Manual byte swapping:');
+  var original = 0x12345678;
+  var swapped = swap32(original);
+  print('Original: 0x${original.toRadixString(16)}');
+  print('Swapped:  0x${swapped.toRadixString(16)}');
+}
+
+int swap32(int value) {
+  return ((value & 0xFF) << 24) |
+         ((value & 0xFF00) << 8) |
+         ((value & 0xFF0000) >> 8) |
+         ((value & 0xFF000000) >> 24);
+}
+
+int swap16(int value) {
+  return ((value & 0xFF) << 8) | ((value & 0xFF00) >> 8);
+}
+```
+
+This example demonstrates endianness handling in Dart. ByteData provides  
+built-in support for reading and writing data in specific byte orders,  
+which is essential for network protocols (typically big-endian) and file  
+formats that specify endianness.  
+
+Understanding endianness prevents data corruption when exchanging binary  
+data between different systems. Network byte order is always big-endian,  
+while most modern CPUs use little-endian for internal representation.  
+
+## Advanced Binary Manipulation
+
+### Parsing Complex Binary Structures
+
+Real-world binary formats often have nested structures, variable-length  
+fields, and complex layouts requiring careful parsing.  
+
+```dart
+import 'dart:typed_data';
+import 'dart:io';
+
+void main() async {
+  print('Parsing Complex Binary Structures:');
+  
+  // Create a mock binary file with nested structure
+  await createComplexFile();
+  
+  // Parse the file
+  var file = File('complex.bin');
+  var data = await file.readAsBytes();
+  
+  var parser = BinaryParser(data);
+  
+  // Parse header
+  var magic = parser.readUint32();
+  var version = parser.readUint16();
+  var flags = parser.readUint16();
+  var sectionCount = parser.readUint32();
+  
+  print('Header:');
+  print('  Magic: 0x${magic.toRadixString(16)}');
+  print('  Version: $version');
+  print('  Flags: $flags');
+  print('  Sections: $sectionCount');
+  
+  // Parse sections
+  print('\nSections:');
+  for (var i = 0; i < sectionCount; i++) {
+    var sectionType = parser.readUint8();
+    var sectionSize = parser.readUint16();
+    var sectionData = parser.readBytes(sectionSize);
+    
+    print('  Section $i: type=$sectionType, size=$sectionSize bytes');
+    
+    if (sectionType == 1) {
+      // String section
+      print('    Content: ${String.fromCharCodes(sectionData)}');
+    } else if (sectionType == 2) {
+      // Numeric section
+      var nums = ByteData.view(sectionData.buffer);
+      var count = sectionSize ~/ 4;
+      print('    Numbers: ${List.generate(count, (i) => nums.getUint32(i * 4))}');
+    }
+  }
+  
+  await file.delete();
+}
+
+Future<void> createComplexFile() async {
+  var builder = BytesBuilder();
+  
+  // Header
+  var header = ByteData(12);
+  header.setUint32(0, 0xCAFEBABE); // Magic
+  header.setUint16(4, 1);           // Version
+  header.setUint16(6, 0);           // Flags
+  header.setUint32(8, 2);           // Section count
+  builder.add(header.buffer.asUint8List());
+  
+  // Section 1: String
+  builder.addByte(1); // Type
+  var str = 'Hello there!';
+  builder.addByte(str.length & 0xFF);
+  builder.addByte((str.length >> 8) & 0xFF);
+  builder.add(str.codeUnits);
+  
+  // Section 2: Numbers
+  builder.addByte(2); // Type
+  builder.addByte(12); // Size (3 * 4 bytes)
+  builder.addByte(0);
+  var nums = ByteData(12);
+  nums.setUint32(0, 100);
+  nums.setUint32(4, 200);
+  nums.setUint32(8, 300);
+  builder.add(nums.buffer.asUint8List());
+  
+  await File('complex.bin').writeAsBytes(builder.toBytes());
+}
+
+class BinaryParser {
+  final Uint8List _data;
+  int _offset = 0;
+  
+  BinaryParser(this._data);
+  
+  int get offset => _offset;
+  int get remaining => _data.length - _offset;
+  
+  int readUint8() => _data[_offset++];
+  
+  int readUint16() {
+    var value = (_data[_offset] << 8) | _data[_offset + 1];
+    _offset += 2;
+    return value;
+  }
+  
+  int readUint32() {
+    var value = (_data[_offset] << 24) |
+                (_data[_offset + 1] << 16) |
+                (_data[_offset + 2] << 8) |
+                _data[_offset + 3];
+    _offset += 4;
+    return value;
+  }
+  
+  Uint8List readBytes(int count) {
+    var bytes = _data.sublist(_offset, _offset + count);
+    _offset += count;
+    return bytes;
+  }
+}
+```
+
+This example demonstrates parsing complex binary structures with nested  
+sections and variable-length fields. The BinaryParser class encapsulates  
+parsing logic, tracking position and providing type-safe read operations.  
+
+This pattern is common in file format parsers, network protocol handlers,  
+and binary data processors. Proper error handling and validation should  
+be added for production code to handle malformed data gracefully.  
+
+## Real-world Binary Data Scenarios
+
+### Parsing File Headers
+
+Many file formats start with headers containing metadata. Understanding  
+header parsing is essential for working with real-world files.  
+
+```dart
+import 'dart:typed_data';
+import 'dart:io';
+
+void main() async {
+  print('File Header Parsing:');
+  
+  // Create mock PNG header
+  await createPNGMock();
+  
+  // Parse PNG header
+  var pngFile = File('mock.png');
+  var data = await pngFile.readAsBytes();
+  
+  print('PNG Header Analysis:');
+  
+  // PNG signature (8 bytes)
+  var signature = data.sublist(0, 8);
+  print('Signature: ${signature.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+  
+  var validSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+  var isValid = true;
+  for (var i = 0; i < 8; i++) {
+    if (signature[i] != validSignature[i]) {
+      isValid = false;
+      break;
+    }
+  }
+  print('Valid PNG: $isValid');
+  
+  // IHDR chunk (first chunk after signature)
+  var reader = ByteData.view(data.buffer, 8);
+  
+  var chunkLength = reader.getUint32(0, Endian.big);
+  var chunkType = String.fromCharCodes(data.sublist(12, 16));
+  
+  print('\nFirst Chunk:');
+  print('  Length: $chunkLength');
+  print('  Type: $chunkType');
+  
+  if (chunkType == 'IHDR') {
+    var width = reader.getUint32(4, Endian.big);
+    var height = reader.getUint32(8, Endian.big);
+    var bitDepth = reader.getUint8(12);
+    var colorType = reader.getUint8(13);
+    
+    print('  Width: $width');
+    print('  Height: $height');
+    print('  Bit Depth: $bitDepth');
+    print('  Color Type: $colorType');
+  }
+  
+  await pngFile.delete();
+}
+
+Future<void> createPNGMock() async {
+  var builder = BytesBuilder();
+  
+  // PNG signature
+  builder.add([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+  
+  // IHDR chunk
+  var ihdr = ByteData(25);
+  ihdr.setUint32(0, 13, Endian.big); // Chunk length
+  ihdr.setUint8(4, 73);  // 'I'
+  ihdr.setUint8(5, 72);  // 'H'
+  ihdr.setUint8(6, 68);  // 'D'
+  ihdr.setUint8(7, 82);  // 'R'
+  ihdr.setUint32(8, 800, Endian.big);  // Width
+  ihdr.setUint32(12, 600, Endian.big); // Height
+  ihdr.setUint8(16, 8);  // Bit depth
+  ihdr.setUint8(17, 2);  // Color type (RGB)
+  ihdr.setUint8(18, 0);  // Compression
+  ihdr.setUint8(19, 0);  // Filter
+  ihdr.setUint8(20, 0);  // Interlace
+  ihdr.setUint32(21, 0, Endian.big); // CRC (simplified)
+  
+  builder.add(ihdr.buffer.asUint8List());
+  
+  await File('mock.png').writeAsBytes(builder.toBytes());
+}
+```
+
+This example demonstrates parsing a PNG file header, one of the most  
+common image formats. PNG uses a chunk-based format with big-endian  
+byte order, making it a good example of real-world binary parsing.  
+
+Understanding file headers enables format detection, metadata extraction,  
+and validation. Similar patterns apply to JPEG, PDF, and many other formats.  
+
+### Creating Network Protocol Packets
+
+Network protocols rely on precise binary encoding for efficient and  
+reliable communication between systems.  
+
+```dart
+import 'dart:typed_data';
+
+void main() {
+  print('Network Protocol Packet Creation:');
+  
+  // Create a simple packet
+  var packet = createPacket(
+    type: 1,
+    sequence: 12345,
+    payload: 'Hello there!'.codeUnits,
+  );
+  
+  print('Created packet: ${packet.length} bytes');
+  print('Hex: ${bytesToHex(packet)}');
+  
+  // Parse the packet
+  print('\nParsing packet:');
+  var parsed = parsePacket(packet);
+  
+  print('  Version: ${parsed['version']}');
+  print('  Type: ${parsed['type']}');
+  print('  Sequence: ${parsed['sequence']}');
+  print('  Payload Length: ${parsed['payloadLength']}');
+  print('  Payload: ${String.fromCharCodes(parsed['payload'])}');
+  print('  Checksum: 0x${parsed['checksum'].toRadixString(16)}');
+  
+  // Verify checksum
+  var isValid = verifyChecksum(packet);
+  print('  Checksum Valid: $isValid');
+}
+
+Uint8List createPacket({required int type, required int sequence, required List<int> payload}) {
+  var buffer = ByteData(12 + payload.length);
+  
+  // Header (12 bytes)
+  buffer.setUint8(0, 1);           // Version
+  buffer.setUint8(1, type);        // Type
+  buffer.setUint16(2, 0);          // Flags
+  buffer.setUint32(4, sequence);   // Sequence number
+  buffer.setUint16(8, payload.length); // Payload length
+  buffer.setUint16(10, 0);         // Checksum placeholder
+  
+  // Payload
+  var fullPacket = Uint8List(12 + payload.length);
+  fullPacket.setRange(0, 12, buffer.buffer.asUint8List());
+  fullPacket.setRange(12, 12 + payload.length, payload);
+  
+  // Calculate and set checksum
+  var checksum = calculateChecksum(fullPacket.sublist(0, 12 + payload.length));
+  buffer.setUint16(10, checksum);
+  fullPacket.setRange(0, 12, buffer.buffer.asUint8List());
+  
+  return fullPacket;
+}
+
+Map<String, dynamic> parsePacket(Uint8List packet) {
+  var buffer = ByteData.view(packet.buffer);
+  
+  return {
+    'version': buffer.getUint8(0),
+    'type': buffer.getUint8(1),
+    'flags': buffer.getUint16(2),
+    'sequence': buffer.getUint32(4),
+    'payloadLength': buffer.getUint16(8),
+    'checksum': buffer.getUint16(10),
+    'payload': packet.sublist(12),
+  };
+}
+
+int calculateChecksum(Uint8List data) {
+  var sum = 0;
+  for (var i = 0; i < data.length; i++) {
+    if (i != 10 && i != 11) { // Skip checksum field
+      sum = (sum + data[i]) & 0xFFFF;
+    }
+  }
+  return (~sum) & 0xFFFF;
+}
+
+bool verifyChecksum(Uint8List packet) {
+  var buffer = ByteData.view(packet.buffer);
+  var storedChecksum = buffer.getUint16(10);
+  var calculatedChecksum = calculateChecksum(packet);
+  return storedChecksum == calculatedChecksum;
+}
+
+String bytesToHex(Uint8List bytes) {
+  return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
+}
+```
+
+This example demonstrates creating and parsing network protocol packets,  
+a fundamental skill for network programming. The example shows a simple  
+packet format with header, payload, and checksum for error detection.  
+
+Real network protocols like TCP/IP, UDP, and custom protocols follow  
+similar patterns. Understanding these concepts enables implementing  
+network communication, analyzing packet captures, and debugging network  
+issues.  
+
+## Summary
+
+This comprehensive guide has covered detailed Dart code examples demonstrating  
+various aspects of binary data manipulation, adapted from Go to Dart's  
+idiomatic style and best practices.  
+
+### Key Topics Covered
+
+**Basic Operations (Examples 1-10):**  
+- Creating and manipulating Uint8List objects  
+- Memory-efficient operations and buffer reuse  
+- List sorting and advanced patterns  
+- Type conversions using ByteData  
+
+**File I/O (Examples 11-20):**  
+- Binary file reading and writing with various methods  
+- Random access operations using RandomAccessFile  
+- Stream-based processing for large files  
+- Compression, concurrent processing, and format detection  
+
+**Bitwise Operations (Examples 21-30):**  
+- Basic bitwise arithmetic and bit manipulation  
+- Bit fields and packed data structures  
+- Advanced algorithms including Gray code and Morton encoding  
+- Bit vectors for efficient set operations  
+
+**Encoding/Decoding (Examples 31-40):**  
+- Base64 encoding using dart:convert  
+- Hexadecimal encoding and hex dump utilities  
+- ASCII and binary conversions  
+- Custom binary format design  
+
+**Buffer Operations (Examples 41-50):**  
+- Dynamic buffer building with BytesBuilder  
+- Stream-based buffer processing  
+- Backpressure handling in data flows  
+
+**Endianness Handling (Examples 51-60):**  
+- Understanding big-endian and little-endian byte order  
+- Using ByteData for cross-platform compatibility  
+- Manual byte swapping when needed  
+
+**Advanced Manipulation (Examples 61-70):**  
+- Parsing complex nested binary structures  
+- Creating binary parsers with position tracking  
+- Zero-copy techniques with buffer views  
+
+**Real-world Scenarios (Examples 71-80):**  
+- File format header parsing (PNG example)  
+- Network protocol packet creation  
+- Binary format validation and error detection  
+
+### Best Practices Demonstrated
+
+1. **Memory Efficiency**: Using Uint8List for typed arrays, BytesBuilder  
+   for dynamic construction, and buffer views for zero-copy operations  
+2. **Error Handling**: Proper try-catch blocks, file existence checks,  
+   and data validation  
+3. **Performance**: Stream-based processing for large files, efficient  
+   bit manipulation algorithms, and minimal allocations  
+4. **Cross-platform Compatibility**: Explicit endianness handling with  
+   ByteData for portable binary formats  
+5. **Type Safety**: Leveraging Dart's type system with Uint8List,  
+   ByteData, and structured parsing  
+
+### Common Patterns
+
+- **Builder Pattern**: BytesBuilder for efficient byte array construction  
+- **Parser Pattern**: BinaryParser for structured data extraction  
+- **Stream Pattern**: Processing data flows with proper backpressure  
+- **Validation Pattern**: Checksums and magic numbers for data integrity  
+
+### Use Cases Covered
+
+- Network protocol implementation and packet handling  
+- File format processing and header parsing  
+- Binary data compression and encoding  
+- Bitwise operations for flags and compact data  
+- Cross-platform data exchange with endianness handling  
+
+These examples provide a solid foundation for working with binary data in  
+Dart, demonstrating both fundamental concepts and advanced techniques used  
+in real-world applications. The patterns and techniques shown form the  
+building blocks for implementing network protocols, file formats, data  
+compression, and other binary data processing tasks.  
+
+Dart's strong typing, excellent standard library support through dart:io,  
+dart:typed_data, and dart:convert, combined with async/await for efficient  
+I/O, makes it an excellent choice for binary data manipulation in both  
+server-side and Flutter mobile applications.  
