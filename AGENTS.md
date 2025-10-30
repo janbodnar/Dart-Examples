@@ -3,7 +3,7 @@
 ## The beginning of the document
 
 The beginning of the document contains a lengthy introduction to the topic covered.  
-If the document is about Groovy arrays, the beginning of the document must contain  
+If the document is about Dart arrays, the beginning of the document must contain  
 an in-depth description of arrays and necessary definitions. 
 
 ## Adding code descriptions 
